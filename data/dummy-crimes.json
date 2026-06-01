@@ -1,0 +1,47 @@
+[
+  {
+    "id":"INC-001",
+    "type":"강도",
+    "subtype":"무장강도",
+    "severity":"CRITICAL",
+    "lat":33.4950, "lng":126.5280,
+    "address":"제주시 연동 456-7 편의점",
+    "description":"무장 남성 2명이 편의점에서 흉기를 들고 현금을 강취 중",
+    "reportedAt":"2026-06-01T22:15:00Z",
+    "requiredSpecialties":["강도","무장범죄"],
+    "requiredEquipment":["권총","방탄조끼"],
+    "requiredVehicles":1,
+    "arrestRequired":true,
+    "lawArticles":["형법 제333조(강도)","형법 제334조(특수강도)"]
+  },
+  {
+    "id":"INC-002",
+    "type":"가정폭력",
+    "subtype":"배우자폭행",
+    "severity":"HIGH",
+    "lat":33.5080, "lng":126.5200,
+    "address":"제주시 이도2동 789-3 아파트 303호",
+    "description":"이웃 주민 신고 — 303호에서 고함과 물건 부서지는 소리 지속",
+    "reportedAt":"2026-06-01T23:40:00Z",
+    "requiredSpecialties":["가정폭력","여성청소년"],
+    "requiredEquipment":["수갑"],
+    "requiredVehicles":1,
+    "arrestRequired":false,
+    "lawArticles":["가정폭력처벌법 제2조","형법 제260조(폭행)"]
+  },
+  {
+    "id":"INC-003",
+    "type":"사이버범죄",
+    "subtype":"랜섬웨어",
+    "severity":"HIGH",
+    "lat":33.4900, "lng":126.5100,
+    "address":"제주시 건입동 제주의료원",
+    "description":"병원 서버 전체 랜섬웨어 감염 — 환자 기록 접근 불가, 비트코인 요구",
+    "reportedAt":"2026-06-01T09:00:00Z",
+    "requiredSpecialties":["사이버범죄","과학수사"],
+    "requiredEquipment":["포렌식킷","노트북"],
+    "requiredVehicles":1,
+    "arrestRequired":false,
+    "lawArticles":["정보통신망법 제48조","형법 제314조(업무방해)"]
+  }
+]

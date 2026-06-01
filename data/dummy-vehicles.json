@@ -1,0 +1,17 @@
+{
+  "vehicles": [
+    { "id":"VEH-001", "type":"순찰차", "autonomous":false, "status":"대기", "lat":33.4996, "lng":126.5312, "crew":["AGT-001"], "capacity":4 },
+    { "id":"VEH-002", "type":"순찰차", "autonomous":false, "status":"순찰중", "lat":33.4860, "lng":126.4210, "crew":["AGT-003"], "capacity":4 },
+    { "id":"VEH-003", "type":"자율주행_이송차", "autonomous":true, "status":"대기", "lat":33.5010, "lng":126.5290, "crew":[], "capacity":2, "wsEndpoint":"ws://av-003.police.local/control" },
+    { "id":"VEH-004", "type":"자율주행_이송차", "autonomous":true, "status":"대기", "lat":33.4940, "lng":126.5380, "crew":[], "capacity":2, "wsEndpoint":"ws://av-004.police.local/control" },
+    { "id":"VEH-005", "type":"특수기동대버스", "autonomous":false, "status":"대기", "lat":33.5070, "lng":126.5160, "crew":[], "capacity":12 },
+    { "id":"VEH-006", "type":"드론", "autonomous":true, "status":"대기", "lat":33.5000, "lng":126.5300, "crew":[], "capacity":0, "wsEndpoint":"ws://drone-006.police.local/control" }
+  ],
+  "equipment": [
+    { "id":"EQP-001", "name":"이동식CCTV", "type":"감시", "status":"대기", "location":"제주경찰서 창고" },
+    { "id":"EQP-002", "name":"폭발물처리로봇", "type":"특수", "status":"대기", "location":"제주경찰서 창고" },
+    { "id":"EQP-003", "name":"포렌식분석장비", "type":"과학수사", "status":"대기", "location":"과학수사팀 사무실" },
+    { "id":"EQP-004", "name":"드론감시시스템", "type":"감시", "status":"대기", "location":"옥상 격납고" },
+    { "id":"EQP-005", "name":"차량추적시스템", "type":"추적", "status":"활성", "location":"상황실" }
+  ]
+}
