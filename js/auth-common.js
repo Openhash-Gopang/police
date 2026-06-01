@@ -1,10 +1,4 @@
 /**
- * K-Police auth.js v2.0
- * auth-common.js 패턴 준수 — SVC_ID만 police로 설정
- */
-const SVC_ID    = 'police';
-const GOPANG_URL= 'https://gopang.net';
-/**
  * Gopang Subsystem Auth v2.0
  * ─────────────────────────────────────────────────────────
  * 모든 고팡 서브시스템이 공유하는 범용 인증 모듈.
