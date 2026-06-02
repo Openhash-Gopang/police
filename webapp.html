@@ -265,7 +265,7 @@ html,body{height:100%;height:100dvh;overflow:hidden;
 </div>
 
 <script src="js/config.js"></script>
-<script type="module" src="https://gopang.net/auth/subsystem-auth.js"></script>
+<script src="js/auth.js"></script>
 <script src="js/risk-engine.js"></script>
 <script src="js/dispatch.js"></script>
 <script src="js/lawsuit.js"></script>
@@ -701,9 +701,10 @@ function showWelcome() {
 }
 
 // ── 앱 초기화 ─────────────────────────────────────────────
-(async () => {
-  await DispatchEngine.loadResources();
-  const user = await initAuth();
+// subsystem-auth.js(type="module")가 자동으로 initAuth()를 실행함.
+DispatchEngine.loadResources();
+
+window._onGopangAuth = async function(user) {
   if (!user) return;
 
   document.getElementById('auth-loading').style.display = 'none';
@@ -718,7 +719,7 @@ function showWelcome() {
   const clean = new URL(location.href);
   ['gwp','gwp_token','ctx','origin'].forEach(k => clean.searchParams.delete(k));
   history.replaceState({}, '', clean.toString());
-})();
+};
 </script>
 </body>
 </html>

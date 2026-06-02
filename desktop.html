@@ -688,11 +688,14 @@ document.getElementById('crime-grid').innerHTML=crimeTypes.map(c=>`
 function closeAuthModal(){ document.getElementById('auth-modal').classList.remove('open'); }
 
 // ── 초기화 ─────────────────────────────────────────────────
-(async()=>{
-  await DispatchEngine.loadResources();
-  const user=await initAuth();
+// subsystem-auth.js(type="module")가 자동으로 initAuth()를 실행함.
+// 인증 완료 후 window._gopangUser에 user를 저장해두고,
+// 이쪽에서 폴링으로 받아 처리함.
+DispatchEngine.loadResources();
+
+window._onGopangAuth = async function(user) {
+  if (!user) return;
   document.getElementById('auth-loading').style.display='none';
-  if(!user) return;
   document.getElementById('nav-badge').textContent=user.level||'L0';
   document.getElementById('chat-badge').textContent=user.level||'L0';
 
@@ -704,7 +707,7 @@ function closeAuthModal(){ document.getElementById('auth-modal').classList.remov
   const clean=new URL(location.href);
   ['gwp','gwp_token','ctx','origin'].forEach(k=>clean.searchParams.delete(k));
   history.replaceState({},'',clean.toString());
-})();
+};
 </script>
 </body>
 </html>
