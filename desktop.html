@@ -2,1254 +2,891 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>K-Police — AI 경찰관이 24시간 지킵니다</title>
-<meta name="description" content="모든 시민·기관·사물에 전담 AI 경찰관이 배정됩니다. 24시간 범죄 예방·신고·출동·소송.">
 <link rel="icon" href="data:,">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500&display=swap" rel="stylesheet">
 <style>
-/* ── Reset & Base ── */
+:root{
+  --bg:#f8f9fa;--sur:#fff;
+  --bd:rgba(0,0,0,.1);--bd2:rgba(0,0,0,.18);
+  --t1:#1c1c1e;--t2:#4a4a55;--t3:#9898a6;
+  --brand:#1d4ed8;--brand-bg:rgba(29,78,216,.07);--brand-bd:rgba(29,78,216,.22);
+  --red:#dc2626;--red-bg:rgba(220,38,38,.07);--red-bd:rgba(220,38,38,.22);
+  --green:#16a34a;
+  --font:'Noto Sans KR',-apple-system,sans-serif;
+  --r:6px;--r2:10px;
+}
+@media(prefers-color-scheme:dark){
+  :root{--bg:#0f0f0f;--sur:#1c1c1e;--bd:rgba(255,255,255,.1);--bd2:rgba(255,255,255,.2);--t1:#f5f5f7;--t2:#a1a1aa;--t3:#52525b}
+}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
-body{
-  font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
-  font-size:14px;line-height:1.5;
-  color:#171717;background:#fff;
-  -webkit-font-smoothing:antialiased;
-  overflow-x:hidden;
-}
+body{font-family:var(--font);font-size:14px;color:var(--t1);background:var(--bg);-webkit-font-smoothing:antialiased;line-height:1.6}
 a{text-decoration:none;color:inherit}
-button{font-family:inherit;cursor:pointer;border:none;background:none}
 
+/* ── SIDEBAR ── */
 :root{
-  --sidebar-w:60px;
-  --sidebar-w-open:220px;
-  --topbar-h:48px;
-
-  --green:#3ecf8e;
-  --green-dk:#1a7a4e;
-  --green-lt:#d1fae5;
-  --green-mid:#22c55e;
-
-  --gray-50:#fafafa;
-  --gray-100:#f5f5f5;
-  --gray-200:#e5e5e5;
-  --gray-300:#d4d4d4;
-  --gray-400:#a3a3a3;
-  --gray-500:#737373;
-  --gray-600:#525252;
-  --gray-700:#404040;
-  --gray-800:#262626;
-  --gray-900:#171717;
-
-  --red:#ef4444;
-  --red-lt:#fef2f2;
-  --orange:#f97316;
-  --blue:#3b82f6;
-  --blue-lt:#eff6ff;
-  --border:#e5e5e5;
-  --border-strong:#d4d4d4;
+  --sb-w-collapsed:48px;
+  --sb-w-expanded:220px;
+  --sb-bg:#ffffff;
+  --sb-hover:rgba(0,0,0,.05);
+  --sb-active:rgba(29,78,216,.10);
+  --sb-text:#4a4a55;
+  --sb-text-dim:#9898a6;
+  --sb-sep:rgba(0,0,0,.08);
+  --sb-brand:#1d4ed8;
+  --sb-trans:width 220ms cubic-bezier(.4,0,.2,1),box-shadow 220ms cubic-bezier(.4,0,.2,1);
 }
-
-/* ── Layout Shell ── */
-.app-shell{display:flex;min-height:100vh;padding-top:var(--topbar-h)}
-
-/* ── Topbar ── */
-.topbar{
-  position:fixed;top:0;left:0;right:0;height:var(--topbar-h);
-  background:#fff;border-bottom:1px solid var(--border);
-  display:flex;align-items:center;padding:0 16px 0 0;
-  z-index:200;gap:0;
-}
-.topbar-logo-area{
-  width:var(--sidebar-w);flex-shrink:0;
-  display:flex;align-items:center;justify-content:center;
-  border-right:1px solid var(--border);
-  height:100%;transition:width .2s ease;
-}
-.topbar-logo{display:flex;align-items:center;gap:8px;padding:0 16px;white-space:nowrap;overflow:hidden}
-.logo-mark{
-  width:28px;height:28px;border-radius:6px;
-  background:#171717;
-  display:flex;align-items:center;justify-content:center;
-  font-size:15px;flex-shrink:0;
-}
-.logo-text{font-size:13px;font-weight:600;color:#171717;opacity:0;transition:opacity .15s;white-space:nowrap}
-.topbar-center{flex:1;padding:0 16px;display:flex;align-items:center;gap:8px}
-.topbar-breadcrumb{
-  display:flex;align-items:center;gap:6px;
-  font-size:13px;color:var(--gray-500);
-}
-.topbar-breadcrumb .crumb{color:var(--gray-700);font-weight:500}
-.topbar-breadcrumb .sep{color:var(--gray-400);font-size:11px}
-.badge-env{
-  display:inline-flex;align-items:center;gap:4px;
-  background:var(--gray-100);border:1px solid var(--border);
-  border-radius:4px;padding:2px 7px;font-size:11px;font-weight:500;color:var(--gray-600);
-}
-.dot-green{width:6px;height:6px;border-radius:50%;background:var(--green-mid);flex-shrink:0}
-
-.topbar-right{display:flex;align-items:center;gap:8px;margin-left:auto}
-.btn-topbar{
-  display:flex;align-items:center;gap:5px;
-  padding:5px 12px;border-radius:6px;font-size:13px;font-weight:500;
-  border:1px solid var(--border);color:var(--gray-700);
-  transition:border-color .15s,background .15s;
-}
-.btn-topbar:hover{background:var(--gray-50);border-color:var(--border-strong)}
-.btn-topbar.red{background:var(--red);color:#fff;border-color:var(--red)}
-.btn-topbar.red:hover{background:#dc2626;border-color:#dc2626}
-.btn-topbar.dark{background:var(--gray-900);color:#fff;border-color:var(--gray-900)}
-.btn-topbar.dark:hover{background:var(--gray-800)}
-.level-badge{
-  padding:3px 8px;background:var(--gray-100);border:1px solid var(--border);
-  border-radius:4px;font-size:11px;font-weight:600;color:var(--gray-600);
-}
-
-/* ── Sidebar ── */
+body.has-sidebar{padding-left:var(--sb-w-collapsed)}
 .sidebar{
-  position:fixed;top:var(--topbar-h);left:0;bottom:0;
-  width:var(--sidebar-w);
-  background:#fff;border-right:1px solid var(--border);
+  position:fixed;top:0;left:0;bottom:0;
+  width:var(--sb-w-collapsed);
+  background:var(--sb-bg);
+  border-right:1px solid rgba(0,0,0,.09);
   display:flex;flex-direction:column;
-  z-index:150;overflow:hidden;
-  transition:width .2s ease;
+  z-index:200;overflow:hidden;
+  transition:var(--sb-trans);
 }
-.sidebar:hover{width:var(--sidebar-w-open)}
-.sidebar:hover .topbar-logo-area{width:var(--sidebar-w-open)}
-.sidebar:hover .logo-text{opacity:1}
-
-.sidebar-section{padding:8px 0}
-.sidebar-section+.sidebar-section{border-top:1px solid var(--border)}
-.sidebar-label{
-  padding:0 12px 4px;font-size:10px;font-weight:600;
-  color:var(--gray-400);letter-spacing:.06em;text-transform:uppercase;
-  white-space:nowrap;overflow:hidden;opacity:0;transition:opacity .15s;
-}
-.sidebar:hover .sidebar-label{opacity:1}
-
-.nav-item{
+.sidebar:hover{width:var(--sb-w-expanded);box-shadow:2px 0 20px rgba(0,0,0,.18)}
+.sb-logo{
   display:flex;align-items:center;gap:10px;
-  padding:7px 18px;border-radius:0;
-  color:var(--gray-600);font-size:13px;font-weight:500;
-  cursor:pointer;transition:background .12s,color .12s;
-  white-space:nowrap;overflow:hidden;
-  border-left:2px solid transparent;
+  padding:0 12px;height:56px;
+  border-bottom:.5px solid var(--sb-sep);
+  flex-shrink:0;overflow:hidden;white-space:nowrap;text-decoration:none;
 }
-.nav-item:hover{background:var(--gray-50);color:var(--gray-900)}
-.nav-item.active{
-  color:var(--gray-900);font-weight:600;
-  background:var(--gray-100);
-  border-left-color:var(--gray-900);
-}
-.nav-item svg,.nav-icon{flex-shrink:0;width:16px;height:16px;color:inherit}
-.nav-item-text{opacity:0;transition:opacity .1s;white-space:nowrap}
-.sidebar:hover .nav-item-text{opacity:1}
-.nav-item-badge{
-  margin-left:auto;min-width:18px;height:18px;padding:0 5px;
-  background:var(--red);border-radius:9px;
-  font-size:10px;font-weight:700;color:#fff;
+.sb-logo-mark{
+  width:24px;height:24px;background:var(--sb-brand);border-radius:5px;
   display:flex;align-items:center;justify-content:center;
-  opacity:0;transition:opacity .1s;flex-shrink:0;
+  color:#fff;font-size:13px;font-weight:600;flex-shrink:0;
 }
-.sidebar:hover .nav-item-badge{opacity:1}
+.sb-logo-text{font-size:13px;font-weight:500;color:#1c1c1e;opacity:0;transition:opacity 160ms ease 30ms}
+.sidebar:hover .sb-logo-text{opacity:1}
+.sb-section-label{
+  padding:14px 14px 3px;font-size:10px;font-weight:500;letter-spacing:.08em;
+  color:var(--sb-text-dim);text-transform:uppercase;white-space:nowrap;
+  opacity:0;transition:opacity 140ms ease;
+}
+.sidebar:hover .sb-section-label{opacity:1}
+.sb-nav{flex:1;overflow:hidden;padding:6px 6px 0;display:flex;flex-direction:column}
+.sb-item{
+  display:flex;align-items:center;gap:10px;padding:0 8px;height:36px;
+  border-radius:6px;color:var(--sb-text);white-space:nowrap;
+  text-decoration:none;cursor:pointer;
+  transition:background 120ms,color 120ms;overflow:hidden;flex-shrink:0;
+}
+.sb-item:hover{background:var(--sb-hover);color:var(--t1)}
+.sb-item.active{background:var(--sb-active);color:#1e3a8a}
+.sb-icon{flex-shrink:0;width:20px;height:20px;display:block}
+.sb-label{font-size:13px;opacity:0;transition:opacity 150ms ease 20ms}
+.sidebar:hover .sb-label{opacity:1}
+.sb-badge{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-width:18px;height:16px;border-radius:8px;
+  background:rgba(220,38,38,.15);color:var(--red);
+  font-size:10px;font-weight:600;padding:0 5px;
+  margin-left:auto;opacity:0;transition:opacity 150ms ease;flex-shrink:0;
+}
+.sidebar:hover .sb-badge{opacity:1}
+.sb-sep{height:.5px;background:var(--sb-sep);margin:6px 0;flex-shrink:0}
+.sb-bottom{padding:6px 6px 12px;border-top:.5px solid var(--sb-sep);display:flex;flex-direction:column;flex-shrink:0}
+@media(max-width:768px){.sidebar{display:none}body.has-sidebar{padding-left:0}}
 
-.sidebar-spacer{flex:1}
-.sidebar-bottom{padding:8px 0;border-top:1px solid var(--border)}
+/* ── NAV ── */
+.nav{background:var(--sur);border-bottom:.5px solid var(--bd);position:sticky;top:0;z-index:100}
+.nav-inner{max-width:1080px;margin:0 auto;padding:0 24px;height:56px;display:flex;align-items:center;gap:24px}
+.logo{display:flex;align-items:center;gap:10px;font-size:14px;font-weight:500;color:var(--t1)}
+.logo-mark{width:28px;height:28px;background:var(--brand);border-radius:6px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;font-weight:600}
+.nav-links{display:flex;gap:0;flex:1}
+.nav-links a{padding:6px 12px;border-radius:var(--r);font-size:13px;color:var(--t2);transition:color .12s,background .12s}
+.nav-links a:hover{color:var(--t1);background:rgba(0,0,0,.04)}
+.nav-links-desktop{display:flex}
+.nav-right{display:flex;gap:8px;align-items:center;margin-left:auto}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--r);font-size:13px;font-weight:500;font-family:var(--font);cursor:pointer;border:.5px solid var(--bd2);background:var(--sur);color:var(--t1);transition:all .12s;text-decoration:none}
+.btn:hover{background:var(--bg)}
+.btn-brand{background:var(--brand);border-color:var(--brand);color:#fff}
+.btn-brand:hover{background:#1e40af;border-color:#1e40af}
+.btn-red{background:var(--red);border-color:var(--red);color:#fff}
+.btn-red:hover{background:#b91c1c;border-color:#b91c1c}
+@media(max-width:720px){.nav-links-desktop{display:none}}
 
-/* ── Main Content ── */
-.main{
-  margin-left:var(--sidebar-w);flex:1;
-  min-height:calc(100vh - var(--topbar-h));
-  display:flex;flex-direction:column;
-}
+/* ── BANNER ── */
+.banner{background:var(--brand);color:#fff;text-align:center;padding:9px 48px;font-size:13px;line-height:1.5;position:relative;z-index:110}
+.banner a{color:#fff;text-decoration:underline;text-underline-offset:2px;opacity:.85}
+.banner a:hover{opacity:1}
+.banner-close{position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#fff;opacity:.7;font-size:16px;line-height:1;padding:4px}
+.banner-close:hover{opacity:1}
 
-/* ── Page Header ── */
-.page-header{
-  padding:24px 32px 0;
-  display:flex;align-items:flex-start;justify-content:space-between;
-  flex-wrap:wrap;gap:16px;
-}
-.page-header-left h1{font-size:20px;font-weight:600;color:var(--gray-900);line-height:1.3;margin-bottom:4px}
-.page-header-left p{font-size:13px;color:var(--gray-500);line-height:1.5}
-.page-header-actions{display:flex;align-items:center;gap:8px;flex-shrink:0}
-
-/* ── Stats Row ── */
-.stats-row{
-  display:grid;grid-template-columns:repeat(4,1fr);
-  gap:1px;background:var(--border);
-  border:1px solid var(--border);border-radius:8px;overflow:hidden;
-  margin:24px 32px 0;
-}
-.stat-cell{
-  background:#fff;padding:16px 20px;
-}
-.stat-cell-label{font-size:12px;font-weight:500;color:var(--gray-500);margin-bottom:6px;display:flex;align-items:center;gap:6px}
-.stat-cell-val{font-size:24px;font-weight:700;color:var(--gray-900);line-height:1;margin-bottom:4px}
-.stat-cell-sub{font-size:12px;color:var(--gray-400)}
-.stat-dot-green{width:8px;height:8px;border-radius:50%;background:var(--green-mid);animation:pulse 2s infinite}
+/* ── HERO ── */
+.hero{max-width:1080px;margin:0 auto;padding:80px 24px 64px;text-align:center}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;border:.5px solid var(--brand-bd);background:var(--brand-bg);border-radius:20px;padding:4px 12px;font-size:12px;color:var(--brand);margin-bottom:24px}
+.pulse{width:6px;height:6px;border-radius:50%;background:var(--brand);animation:pulse 2s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.hero h1{font-size:40px;font-weight:500;letter-spacing:-.5px;line-height:1.5;color:var(--t1);margin-bottom:16px}
+.hero-sub{font-size:16px;color:var(--t2);max-width:720px;margin:0 auto 32px;line-height:1.6}
+.hero-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:48px}
+.hero-actions .btn{padding:9px 20px;font-size:14px}
+@media(max-width:720px){.hero h1{font-size:28px}}
 
-/* ── Two-col layout ── */
-.content-grid{
-  display:grid;grid-template-columns:1fr 380px;
-  gap:0;flex:1;
-  border-top:1px solid var(--border);
-  margin-top:24px;
-}
+/* ── STAT STRIP ── */
+.stat-strip{border:.5px solid var(--bd);border-radius:var(--r2);background:var(--sur);display:grid;grid-template-columns:repeat(4,1fr);max-width:700px;margin:0 auto 72px;overflow:hidden}
+.stat{padding:20px 24px;border-right:.5px solid var(--bd)}
+.stat:last-child{border-right:none}
+.stat-val{font-size:22px;font-weight:500;color:var(--t1);margin-bottom:3px}
+.stat-val em{color:var(--brand);font-style:normal}
+.stat-lbl{font-size:12px;color:var(--t3)}
+@media(max-width:720px){.stat-strip{grid-template-columns:1fr 1fr}}
 
-/* ── Chat Panel ── */
-.chat-panel{
-  border-right:1px solid var(--border);
-  display:flex;flex-direction:column;
-  min-height:600px;
-  max-height:calc(100vh - var(--topbar-h) - 220px);
-  position:sticky;top:calc(var(--topbar-h) + 220px);
-}
+/* ── SECTION ── */
+.container{max-width:1080px;margin:0 auto;padding:0 24px}
+.section{padding:64px 0}
+.section-hd{margin-bottom:40px}
+.section-hd h2{font-size:22px;font-weight:500;color:var(--t1);margin-bottom:8px}
+.section-hd p{font-size:14px;color:var(--t2);max-width:480px}
+.divider{border:none;border-top:.5px solid var(--bd);margin:0}
 
-/* -- the first pane is main left col -- */
-.left-col{overflow-y:auto}
+/* ── FEATURE GRID ── */
+.feature-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--bd);border:.5px solid var(--bd);border-radius:var(--r2);overflow:hidden}
+@media(max-width:720px){.feature-grid{grid-template-columns:1fr}}
+.feature-cell{background:var(--sur);padding:24px}
+.feature-icon{width:36px;height:36px;border:.5px solid var(--bd);border-radius:var(--r);display:flex;align-items:center;justify-content:center;color:var(--t2);margin-bottom:16px}
+.feature-title{font-size:14px;font-weight:500;color:var(--t1);margin-bottom:6px}
+.feature-desc{font-size:13px;color:var(--t2);line-height:1.55}
+.feature-badge{display:inline-block;margin-top:10px;font-size:11px;padding:2px 8px;border-radius:20px;border:.5px solid var(--brand-bd);color:var(--brand);background:var(--brand-bg)}
+.feature-badge.red{border-color:var(--red-bd);color:var(--red);background:var(--red-bg)}
 
-.panel-header{
-  padding:12px 16px;border-bottom:1px solid var(--border);
-  display:flex;align-items:center;gap:10px;flex-shrink:0;
-  background:#fff;
-}
-.panel-avatar{
-  width:32px;height:32px;border-radius:6px;
-  background:var(--gray-900);
-  display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;
-}
-.panel-title-group{}
-.panel-name{font-size:13px;font-weight:600;color:var(--gray-900)}
-.panel-status{font-size:11px;color:var(--gray-500);display:flex;align-items:center;gap:4px;margin-top:1px}
-.panel-badge{
-  margin-left:auto;background:var(--gray-100);border:1px solid var(--border);
-  border-radius:4px;padding:2px 7px;font-size:11px;font-weight:600;color:var(--gray-600);
-}
+/* ── SERVICE DESC ── */
+.service-desc{font-size:14px;color:var(--t2);line-height:2;width:100%;margin-bottom:16px}
+.service-closing{font-size:16px;font-weight:500;color:var(--t1);line-height:1.7;margin-bottom:32px;width:100%}
+.service-desc a{color:var(--brand);text-decoration:underline;text-underline-offset:2px;font-weight:500}
+.service-desc a:hover{opacity:.8}
+.fd-bullet{color:var(--brand);font-size:10px;margin-right:4px;vertical-align:middle}
 
-/* Danger banner */
-.danger-banner{
-  display:none;padding:7px 16px;font-size:12px;font-weight:600;
-  text-align:center;flex-shrink:0;letter-spacing:.01em;
-}
-.danger-banner.critical{display:block;background:var(--red);color:#fff;animation:pulseBg 1.5s infinite}
-.danger-banner.high{display:block;background:var(--orange);color:#fff}
-@keyframes pulseBg{0%,100%{opacity:1}50%{opacity:.8}}
+/* ── FLOW ── */
+.flow-row{display:flex;align-items:flex-start;gap:0}
+.flow-step{flex:1;padding:20px 16px;border-right:.5px solid var(--bd);position:relative}
+.flow-step:last-child{border-right:none}
+.flow-num{width:24px;height:24px;border:.5px solid var(--bd);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--t3);margin-bottom:10px}
+.flow-title{font-size:13px;font-weight:500;color:var(--t1);margin-bottom:4px}
+.flow-desc{font-size:12px;color:var(--t3);line-height:1.5}
+.flow-wrap{background:var(--sur);border:.5px solid var(--bd);border-radius:var(--r2);overflow:hidden}
 
-/* Mode tabs */
-.mode-tabs{
-  display:flex;border-bottom:1px solid var(--border);flex-shrink:0;background:#fff;
-}
-.mode-tab{
-  flex:1;padding:9px 4px;font-size:12px;font-weight:500;
-  color:var(--gray-500);background:transparent;border:none;cursor:pointer;
-  border-bottom:2px solid transparent;
-  transition:color .12s,border-color .12s;text-align:center;
-}
-.mode-tab.active{color:var(--gray-900);font-weight:600;border-bottom-color:var(--gray-900)}
-.mode-tab:hover:not(.active){color:var(--gray-700);background:var(--gray-50)}
+/* ── ACCESS GRID ── */
+.access-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:640px){.access-grid{grid-template-columns:1fr}}
+.access-card{background:var(--sur);border:.5px solid var(--bd);border-radius:var(--r2);padding:24px}
+.access-card h3{font-size:15px;font-weight:500;color:var(--t1);margin-bottom:6px}
+.access-card p{font-size:13px;color:var(--t2);margin-bottom:16px;line-height:1.55}
+.access-list{list-style:none;display:flex;flex-direction:column;gap:6px;margin-bottom:20px}
+.access-list li{font-size:13px;color:var(--t2);display:flex;align-items:center;gap:7px}
 
-/* Chips */
-.chips{
-  display:flex;gap:6px;padding:10px 12px;overflow-x:auto;
-  scrollbar-width:none;flex-shrink:0;background:#fafafa;border-bottom:1px solid var(--border);
-}
-.chips::-webkit-scrollbar{display:none}
-.chip{
-  background:#fff;border:1px solid var(--border);
-  border-radius:100px;padding:4px 11px;font-size:11px;font-weight:500;color:var(--gray-600);
-  white-space:nowrap;cursor:pointer;transition:border-color .1s,background .1s;flex-shrink:0;
-}
-.chip:hover{border-color:var(--border-strong);background:var(--gray-50);color:var(--gray-900)}
-.chip.danger{border-color:#fca5a5;color:var(--red);background:var(--red-lt)}
-.chip.danger:hover{border-color:var(--red)}
+/* ── PDV SECTION ── */
+.pdv-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:640px){.pdv-grid{grid-template-columns:1fr}}
+.panel{background:var(--sur);border:.5px solid var(--bd);border-radius:var(--r2);overflow:hidden}
+.panel-hd{padding:14px 18px;border-bottom:.5px solid var(--bd);font-size:13px;font-weight:500;color:var(--t1);display:flex;align-items:center;gap:8px}
+table.rt{width:100%;border-collapse:collapse}
+table.rt tr{border-bottom:.5px solid var(--bd)}
+table.rt tr:last-child{border-bottom:none}
+table.rt td{padding:10px 18px;font-size:13px;color:var(--t2);font-family:monospace}
+table.rt td:last-child{text-align:right;color:var(--t1);font-family:var(--font)}
+table.rt td.blue{color:var(--brand)!important}
+table.rt td.red{color:var(--red)!important}
 
-/* Chat body */
-#chat-body{
-  flex:1;overflow-y:auto;padding:16px 12px;
-  display:flex;flex-direction:column;gap:10px;
-  background:#fff;
-}
-#chat-body::-webkit-scrollbar{width:4px}
-#chat-body::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:2px}
+/* ── FOOTER ── */
+.footer{border-top:.5px solid var(--bd);background:var(--sur);padding:40px 0 24px}
+.footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:32px;margin-bottom:32px}
+@media(max-width:720px){.footer-grid{grid-template-columns:1fr 1fr}}
+.footer-brand{font-size:13px;font-weight:500;color:var(--t1);margin-bottom:6px}
+.footer-desc{font-size:12px;color:var(--t3);line-height:1.6}
+.footer-col-title{font-size:11px;font-weight:500;color:var(--t3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px}
+.footer-links{list-style:none}
+.footer-links li a{display:block;font-size:13px;color:var(--t2);padding:3px 0;transition:color .12s}
+.footer-links li a:hover{color:var(--t1)}
+.footer-bottom{border-top:.5px solid var(--bd);padding-top:16px;font-size:12px;color:var(--t3);display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px}
 
-/* Bubbles */
-.bubble-ai{display:flex;align-items:flex-start;gap:8px;max-width:88%;align-self:flex-start}
-.b-avatar{
-  width:24px;height:24px;border-radius:5px;background:var(--gray-900);
-  display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;margin-top:1px;
-}
-.bubble-ai-text{
-  background:var(--gray-50);border:1px solid var(--border);
-  border-radius:0 10px 10px 10px;
-  padding:9px 12px;font-size:13px;line-height:1.55;color:var(--gray-800);
-  word-break:break-word;
-}
-.bubble-ai-text b{font-weight:600;color:var(--gray-900)}
-.bubble-ai-text.critical-msg{border-color:#fca5a5;background:var(--red-lt)}
-.bubble-ai-text.high-msg{border-color:#fdba74;background:#fff7ed}
-.bubble-ai-text.system-msg{border-color:#bfdbfe;background:var(--blue-lt)}
-.bubble-time{font-size:10px;color:var(--gray-400);margin-top:3px;padding-left:32px}
-.bubble-user{display:flex;flex-direction:column;align-items:flex-end;max-width:88%;align-self:flex-end}
-.bubble-user-text{
-  background:var(--gray-900);border-radius:10px 0 10px 10px;
-  padding:9px 12px;font-size:13px;line-height:1.55;color:#fff;word-break:break-word;
-}
-.bubble-user-time{font-size:10px;color:var(--gray-400);margin-top:3px}
-.typing-wrap{display:flex;align-items:flex-start;gap:8px;align-self:flex-start}
-.typing-dots{
-  background:var(--gray-50);border:1px solid var(--border);
-  border-radius:0 10px 10px 10px;padding:10px 14px;display:flex;gap:4px;
-}
-.typing-dots span{
-  width:5px;height:5px;border-radius:50%;background:var(--gray-400);animation:typDot 1.2s infinite;
-}
-.typing-dots span:nth-child(2){animation-delay:.2s}
-.typing-dots span:nth-child(3){animation-delay:.4s}
-@keyframes typDot{0%,60%,100%{transform:none;opacity:.4}30%{transform:translateY(-4px);opacity:1}}
+/* ── FLOAT CHAT ── */
+.float{position:fixed;bottom:24px;right:24px;z-index:99;display:flex;flex-direction:column;align-items:center;gap:5px}
+.float-btn{width:48px;height:48px;border-radius:50%;background:var(--brand);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff;font-size:20px;box-shadow:0 2px 12px rgba(29,78,216,.35);transition:transform .15s}
+.float-btn:hover{transform:scale(1.06)}
+.float-label{font-size:10px;color:var(--t3);white-space:nowrap}
 
-/* Incident card */
-.incident-card{
-  background:#fff;border:1px solid var(--border);border-radius:8px;
-  padding:12px;font-size:12px;align-self:stretch;
-}
-.incident-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
-.case-num{font-weight:700;color:var(--gray-900);font-size:12px;font-variant-numeric:tabular-nums}
-.sev-badge{border-radius:4px;padding:2px 7px;font-size:11px;font-weight:600}
-.sev-critical{background:var(--red-lt);color:var(--red)}
-.sev-high{background:#fff7ed;color:var(--orange)}
-.inc-row{
-  display:flex;justify-content:space-between;align-items:center;
-  padding:5px 0;border-bottom:1px solid var(--gray-100);font-size:12px;
-}
-.inc-row:last-child{border-bottom:none}
-.inc-key{color:var(--gray-500)}.inc-val{font-weight:600;color:var(--gray-900)}
-
-/* Dispatch card */
-.dispatch-card{
-  background:#f0fdf4;border:1px solid #bbf7d0;
-  border-radius:8px;padding:12px;align-self:stretch;
-}
-.dispatch-title{font-size:12px;font-weight:700;color:var(--green-dk);margin-bottom:8px}
-.agent-row{
-  display:flex;align-items:center;gap:6px;padding:4px 0;
-  border-bottom:1px solid #dcfce7;font-size:12px;color:var(--gray-700);
-}
-.agent-row:last-child{border-bottom:none}
-.av-note{
-  background:#ede9fe;border-radius:4px;padding:4px 8px;
-  font-size:11px;color:#6d28d9;margin-top:6px;
-}
-
-/* Emergency bar */
-.emergency-bar{
-  display:flex;gap:6px;padding:10px 12px;
-  border-top:1px solid var(--border);flex-shrink:0;background:#fff;
-}
-.e-btn{
-  flex:1;padding:7px 4px;border-radius:6px;font-size:12px;font-weight:600;
-  border:1px solid transparent;transition:opacity .12s;text-align:center;
-}
-.e-btn.red{background:var(--red);color:#fff;border-color:var(--red)}
-.e-btn.orange{background:var(--orange);color:#fff;border-color:var(--orange)}
-.e-btn.dark{background:var(--gray-900);color:#fff;border-color:var(--gray-900)}
-.e-btn:hover{opacity:.85}
-
-/* Input */
-.input-area{
-  padding:10px 12px 12px;border-top:1px solid var(--border);
-  display:flex;gap:8px;align-items:flex-end;flex-shrink:0;background:#fff;
-}
-.input-wrap{
-  flex:1;background:#fff;border:1px solid var(--border);
-  border-radius:8px;padding:8px 12px;
-  display:flex;align-items:flex-end;transition:border-color .15s;
-}
-.input-wrap:focus-within{border-color:var(--gray-400)}
-#msg-input{
-  flex:1;background:none;border:none;outline:none;font-family:inherit;
-  font-size:13px;color:var(--gray-900);resize:none;max-height:80px;line-height:1.45;
-}
-#msg-input::placeholder{color:var(--gray-400)}
-.send-btn{
-  width:32px;height:32px;border-radius:6px;
-  background:var(--gray-900);
-  display:flex;align-items:center;justify-content:center;
-  cursor:pointer;flex-shrink:0;transition:background .15s;
-  border:1px solid var(--gray-900);
-}
-.send-btn:disabled{background:var(--gray-200);border-color:var(--gray-200);cursor:not-allowed}
-.send-btn svg{width:13px;height:13px;fill:#fff}
-.send-btn:disabled svg{fill:var(--gray-400)}
-
-/* ── Right column — Info panels ── */
-.right-col{padding:0;display:flex;flex-direction:column;gap:0}
-
-.info-panel{border-bottom:1px solid var(--border)}
-.info-panel-header{
-  padding:12px 16px;display:flex;align-items:center;justify-content:space-between;
-  cursor:pointer;user-select:none;
-}
-.info-panel-header:hover{background:var(--gray-50)}
-.info-panel-title{font-size:12px;font-weight:600;color:var(--gray-800)}
-.info-panel-sub{font-size:11px;color:var(--gray-400);margin-top:1px}
-.info-panel-body{padding:0 16px 14px}
-.toggle-icon{font-size:10px;color:var(--gray-400);transition:transform .15s}
-.info-panel.open .toggle-icon{transform:rotate(90deg)}
-
-/* PDV record */
-.pdv-row{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:6px 0;border-bottom:1px solid var(--gray-100);font-size:12px;
-}
-.pdv-row:last-child{border-bottom:none}
-.pdv-key{color:var(--gray-500);font-family:'Menlo','Courier New',monospace;font-size:11px}
-.pdv-val{color:var(--gray-900);font-weight:500;font-size:12px}
-.pdv-val.green{color:var(--green-dk)}
-.pdv-val.red{color:var(--red)}
-
-/* Crime type grid */
-.crime-grid-inner{
-  display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:12px 16px 14px;
-}
-.crime-tile{
-  display:flex;flex-direction:column;gap:2px;
-  padding:10px;border:1px solid var(--border);border-radius:6px;
-  cursor:pointer;transition:border-color .12s,background .12s;
-}
-.crime-tile:hover{border-color:var(--border-strong);background:var(--gray-50)}
-.crime-tile-icon{font-size:16px;margin-bottom:3px}
-.crime-tile-name{font-size:12px;font-weight:600;color:var(--gray-800)}
-.crime-tile-desc{font-size:11px;color:var(--gray-400)}
-
-/* Feature rows */
-.feature-list{padding:0 16px 14px;display:flex;flex-direction:column;gap:1px}
-.feature-row{
-  display:flex;align-items:flex-start;gap:10px;
-  padding:10px 0;border-bottom:1px solid var(--gray-100);
-}
-.feature-row:last-child{border-bottom:none}
-.feature-icon-box{
-  width:28px;height:28px;border-radius:6px;background:var(--gray-100);
-  display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;
-}
-.feature-row-title{font-size:12px;font-weight:600;color:var(--gray-900);margin-bottom:2px}
-.feature-row-desc{font-size:11px;color:var(--gray-500);line-height:1.5}
-
-/* Architecture */
-.arch-grid-inner{padding:12px 16px 14px;display:flex;flex-direction:column;gap:8px}
-.arch-layer-row{padding:10px;background:var(--gray-50);border:1px solid var(--border);border-radius:6px}
-.arch-layer-label{font-size:10px;font-weight:700;color:var(--gray-400);letter-spacing:.08em;text-transform:uppercase;font-family:monospace;margin-bottom:4px}
-.arch-layer-name{font-size:12px;font-weight:600;color:var(--gray-900);margin-bottom:6px}
-.arch-items{display:flex;flex-wrap:wrap;gap:4px}
-.arch-item-tag{
-  font-size:11px;padding:2px 7px;border-radius:4px;
-  background:#fff;border:1px solid var(--border);color:var(--gray-600);
-}
-
-/* User types */
-.user-types-inner{padding:12px 16px 14px;display:flex;flex-direction:column;gap:8px}
-.user-type-row{
-  padding:10px;border:1px solid var(--border);border-radius:6px;
-  display:flex;align-items:flex-start;gap:10px;
-}
-.user-type-icon-box{font-size:20px;flex-shrink:0;margin-top:2px}
-.user-type-name{font-size:12px;font-weight:600;color:var(--gray-900);margin-bottom:3px}
-.user-type-desc{font-size:11px;color:var(--gray-500);line-height:1.5;margin-bottom:6px}
-.type-tags{display:flex;flex-wrap:wrap;gap:4px}
-.type-tag{
-  font-size:10px;padding:2px 6px;border-radius:100px;
-  background:var(--gray-100);color:var(--gray-600);border:1px solid var(--border);
-}
-
-/* ── Section headings ── */
-.section-label{
-  padding:20px 32px 12px;
-  font-size:11px;font-weight:600;color:var(--gray-500);
-  letter-spacing:.06em;text-transform:uppercase;border-bottom:1px solid var(--border);
-  display:flex;align-items:center;justify-content:space-between;
-}
-.section-label-desc{font-size:12px;font-weight:400;color:var(--gray-400);letter-spacing:0;text-transform:none}
-
-/* Crime grid full-width section */
-.crime-section{border-bottom:1px solid var(--border)}
-.crime-section-header{padding:20px 32px 16px}
-.crime-section-header h2{font-size:16px;font-weight:600;color:var(--gray-900);margin-bottom:4px}
-.crime-section-header p{font-size:13px;color:var(--gray-500)}
-.crime-grid-full{
-  display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);
-  border-top:1px solid var(--border);
-}
-.crime-card-full{
-  background:#fff;padding:20px 16px;cursor:pointer;
-  transition:background .12s;
-  display:flex;flex-direction:column;gap:4px;
-}
-.crime-card-full:hover{background:var(--gray-50)}
-.crime-card-icon{font-size:22px;margin-bottom:6px}
-.crime-card-name{font-size:13px;font-weight:600;color:var(--gray-900)}
-.crime-card-desc{font-size:12px;color:var(--gray-500)}
-
-/* PDV full section */
-.pdv-section{border-bottom:1px solid var(--border);padding:24px 32px}
-.pdv-section-grid{display:grid;grid-template-columns:1fr 1fr;gap:32px;align-items:start;max-width:900px}
-.pdv-section-text h2{font-size:16px;font-weight:600;color:var(--gray-900);margin-bottom:8px}
-.pdv-section-text p{font-size:13px;color:var(--gray-500);line-height:1.6;margin-bottom:16px}
-.pdv-check-list{list-style:none;display:flex;flex-direction:column;gap:6px}
-.pdv-check-list li{
-  display:flex;align-items:center;gap:8px;font-size:13px;color:var(--gray-700);
-}
-.pdv-check-list li::before{content:'✓';color:var(--green-mid);font-weight:700;font-size:12px}
-.pdv-record-box{
-  border:1px solid var(--border);border-radius:8px;overflow:hidden;
-  background:#fff;
-}
-.pdv-record-header{
-  padding:10px 14px;background:var(--gray-50);border-bottom:1px solid var(--border);
-  font-size:11px;font-weight:600;color:var(--gray-500);letter-spacing:.05em;text-transform:uppercase;
-}
-.pdv-record-body{padding:0 14px}
-.pdv-rec-row{
-  display:flex;justify-content:space-between;align-items:center;
-  padding:7px 0;border-bottom:1px solid var(--gray-100);font-size:12px;
-}
-.pdv-rec-row:last-child{border-bottom:none}
-.pdv-rec-key{color:var(--gray-500);font-family:'Menlo','Courier New',monospace;font-size:11px}
-.pdv-rec-val{font-weight:600;color:var(--blue)}
-
-/* Footer */
-.footer{
-  padding:20px 32px;border-top:1px solid var(--border);
-  display:flex;align-items:center;justify-content:space-between;
-  background:var(--gray-50);
-}
-.footer-logo{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--gray-700)}
-.footer-note{font-size:12px;color:var(--gray-400)}
-
-/* Auth states */
-#auth-loading{
-  position:fixed;inset:0;z-index:9999;background:#fff;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;
-}
-.spinner{
-  width:24px;height:24px;border:2px solid var(--gray-200);
-  border-top-color:var(--gray-900);border-radius:50%;animation:spin .7s linear infinite;
-}
-.auth-loading-text{font-size:13px;color:var(--gray-500);font-weight:500}
-@keyframes spin{to{transform:rotate(360deg)}}
-
-#auth-modal{display:none;position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.4);align-items:center;justify-content:center}
-#auth-modal.open{display:flex}
-.auth-dialog{background:#fff;border-radius:12px;width:420px;padding:32px;box-shadow:0 20px 60px rgba(0,0,0,.15);animation:fadeUp .2s ease}
-@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
-
-/* Scrollbar global */
-::-webkit-scrollbar{width:5px;height:5px}
-::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-thumb{background:var(--gray-200);border-radius:3px}
-
-@media(max-width:900px){
-  .content-grid{grid-template-columns:1fr}
-  .right-col{display:none}
-  .crime-grid-full{grid-template-columns:repeat(2,1fr)}
-  .pdv-section-grid{grid-template-columns:1fr}
-  .stats-row{grid-template-columns:repeat(2,1fr)}
-}
+/* ── CHAT MODAL ── */
+.chat-modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:300;align-items:flex-end;justify-content:flex-end;padding:84px 24px 24px}
+.chat-modal-overlay.open{display:flex}
+.chat-modal{width:380px;height:560px;background:var(--sur);border:.5px solid var(--bd);border-radius:14px;box-shadow:0 8px 40px rgba(0,0,0,.18);display:flex;flex-direction:column;overflow:hidden}
+@media(max-width:460px){.chat-modal{width:calc(100vw - 32px);height:70dvh}}
+.chat-modal-hd{padding:14px 16px;border-bottom:.5px solid var(--bd);display:flex;align-items:center;gap:10px;flex-shrink:0}
+.chat-logo{width:28px;height:28px;background:var(--brand);border-radius:7px;display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;font-size:16px}
+.chat-title{flex:1;font-size:13px;font-weight:500;color:var(--t1)}
+.chat-subtitle{font-size:11px;color:var(--t3)}
+.chat-close-btn{background:none;border:none;cursor:pointer;color:var(--t3);font-size:18px;line-height:1;padding:4px;border-radius:4px;transition:color .12s,background .12s}
+.chat-close-btn:hover{color:var(--t1);background:var(--bg)}
+.chat-messages{flex:1;overflow-y:auto;padding:14px 14px 8px;display:flex;flex-direction:column;gap:10px;scroll-behavior:smooth}
+.chat-msg{max-width:88%;font-size:13px;line-height:1.55;padding:9px 12px;border-radius:10px}
+.chat-msg.ai{align-self:flex-start;background:var(--bg);border:.5px solid var(--bd);color:var(--t1);border-bottom-left-radius:3px}
+.chat-msg.user{align-self:flex-end;background:var(--brand);color:#fff;border-bottom-right-radius:3px}
+.chat-msg.typing{color:var(--t3);font-style:italic}
+.chat-input-row{padding:10px 12px;border-top:.5px solid var(--bd);display:flex;gap:8px;align-items:flex-end;flex-shrink:0}
+.chat-input{flex:1;resize:none;border:.5px solid var(--bd2);border-radius:8px;padding:8px 10px;font-size:13px;font-family:var(--font);color:var(--t1);background:var(--bg);line-height:1.45;max-height:100px;outline:none;transition:border-color .12s}
+.chat-input:focus{border-color:var(--brand)}
+.chat-send-btn{width:36px;height:36px;flex-shrink:0;background:var(--brand);border:none;border-radius:8px;cursor:pointer;color:#fff;display:flex;align-items:center;justify-content:center;transition:background .12s,transform .1s}
+.chat-send-btn:hover{background:#1e40af}
+.chat-send-btn:active{transform:scale(.95)}
+.chat-send-btn:disabled{background:var(--bd2);cursor:not-allowed}
+.chat-powered{text-align:center;font-size:10px;color:var(--t3);padding:4px 0 8px;flex-shrink:0}
 </style>
 </head>
 <body>
 
-<!-- Auth Loading -->
-<div id="auth-loading">
-  <div class="spinner"></div>
-  <div class="auth-loading-text">고팡 인증 확인 중…</div>
-</div>
-<div id="auth-modal" onclick="if(event.target===this)document.getElementById('auth-modal').classList.remove('open')">
-  <div class="auth-dialog"><div id="auth-modal-content"></div></div>
-</div>
+<!-- SIDEBAR -->
+<aside class="sidebar" role="navigation" aria-label="K-Police 메인 메뉴">
+  <a href="desktop.html" class="sb-logo">
+    <div class="sb-logo-mark">👮</div>
+    <span class="sb-logo-text">K-Police</span>
+  </a>
 
-<!-- Topbar -->
-<header class="topbar">
-  <div class="topbar-logo-area" id="logo-area">
-    <div class="topbar-logo">
-      <div class="logo-mark">👮</div>
-      <span class="logo-text">K-Police</span>
-    </div>
-  </div>
-  <div class="topbar-center">
-    <div class="topbar-breadcrumb">
-      <span onclick="location.href='https://gopang.net'" style="cursor:pointer;color:var(--gray-500)">gopang</span>
-      <span class="sep">/</span>
-      <span class="crumb">police</span>
-      <span class="sep">/</span>
-      <span style="color:var(--gray-500)">desktop</span>
-    </div>
-    <div class="badge-env"><span class="dot-green"></span>PRODUCTION</div>
-  </div>
-  <div class="topbar-right">
-    <button class="btn-topbar" onclick="location.href='ops.html'">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
-      상황실
-    </button>
-    <button class="btn-topbar red" onclick="if(confirm('112에 전화하시겠습니까?'))location.href='tel:112'">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 10.8 19.79 19.79 0 01.1 2.22 2 2 0 012.07 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 14.92z"/></svg>
-      112
-    </button>
-    <div class="level-badge" id="nav-badge">L0</div>
-  </div>
-</header>
+  <nav class="sb-nav">
+    <div class="sb-section-label">서비스</div>
+    <a href="#overview" class="sb-item active">
+      <svg class="sb-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l-2 0l9 -9l9 9l-2 0"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7"/><path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6"/></svg>
+      <span class="sb-label">서비스 소개</span>
+    </a>
+    <a href="webapp.html" class="sb-item">
+      <svg class="sb-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+      <span class="sb-label">K-Police 앱</span>
+    </a>
+    <a href="dashboard.html" class="sb-item">
+      <svg class="sb-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 4h4a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1v-6a1 1 0 0 1 1 -1"/><path d="M5 16h4a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1v-2a1 1 0 0 1 1 -1"/><path d="M15 12h4a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1v-6a1 1 0 0 1 1 -1"/><path d="M15 4h4a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1v-2a1 1 0 0 1 1 -1"/></svg>
+      <span class="sb-label">상황실 대시보드</span>
+    </a>
+    <a href="ops.html" class="sb-item">
+      <svg class="sb-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+      <span class="sb-label">상황실 (Ops)</span>
+    </a>
 
-<!-- Sidebar -->
-<aside class="sidebar" id="sidebar">
-  <div class="sidebar-section">
-    <div class="sidebar-label">메인</div>
-    <div class="nav-item active" onclick="scrollToSection('hero')">
-      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-      <span class="nav-item-text">대시보드</span>
-    </div>
-    <div class="nav-item" onclick="scrollToSection('chat-section')">
-      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
-      <span class="nav-item-text">AI 상담</span>
-      <span class="nav-item-badge" id="chat-badge-side">!</span>
-    </div>
-    <div class="nav-item" onclick="scrollToSection('crime-section')">
-      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-      <span class="nav-item-text">범죄 신고</span>
-    </div>
-    <div class="nav-item" onclick="location.href='ops.html'">
-      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
-      <span class="nav-item-text">상황실</span>
-    </div>
-  </div>
-  <div class="sidebar-section">
-    <div class="sidebar-label">시스템</div>
-    <div class="nav-item" onclick="scrollToSection('features-section')">
-      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M5.34 17.66l-1.41 1.41M22 12h-2M4 12H2M19.07 19.07l-1.41-1.41M5.34 6.34L3.93 4.93"/></svg>
-      <span class="nav-item-text">서비스 기능</span>
-    </div>
-    <div class="nav-item" onclick="scrollToSection('arch-section')">
-      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-      <span class="nav-item-text">아키텍처</span>
-    </div>
-    <div class="nav-item" onclick="scrollToSection('pdv-section')">
-      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-      <span class="nav-item-text">PDV 기록</span>
-    </div>
-  </div>
-  <div class="sidebar-spacer"></div>
-  <div class="sidebar-bottom">
-    <div class="nav-item" onclick="location.href='https://gopang.net'">
-      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-      <span class="nav-item-text">고팡으로 돌아가기</span>
-    </div>
-    <div class="nav-item" onclick="location.href='webapp.html'">
-      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
-      <span class="nav-item-text">모바일 앱</span>
-    </div>
+    <div class="sb-sep"></div>
+
+    <div class="sb-section-label">섹션</div>
+    <a href="#features" class="sb-item">
+      <svg class="sb-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 3a12 12 0 0 0 8.5 3a12 12 0 0 1 -8.5 15a12 12 0 0 1 -8.5 -15a12 12 0 0 0 8.5 -3"/></svg>
+      <span class="sb-label">핵심 기능</span>
+    </a>
+    <a href="#crimes" class="sb-item">
+      <svg class="sb-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      <span class="sb-label">범죄 유형</span>
+    </a>
+    <a href="#pdv" class="sb-item">
+      <svg class="sb-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      <span class="sb-label">PDV 기록</span>
+    </a>
+    <a href="#arch" class="sb-item">
+      <svg class="sb-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      <span class="sb-label">아키텍처</span>
+    </a>
+
+    <div class="sb-sep"></div>
+
+    <div class="sb-section-label">연동 서비스</div>
+    <a href="https://gopang.net" class="sb-item">
+      <svg class="sb-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><circle cx="12" cy="12" r="9"/><path d="M3.6 9h16.8M3.6 15h16.8M11.5 3a17 17 0 0 0 0 18M12.5 3a17 17 0 0 1 0 18"/></svg>
+      <span class="sb-label">고팡</span>
+    </a>
+    <a href="https://klaw.openhash.kr" class="sb-item">
+      <svg class="sb-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M14 4l6 6l-3.5 3.5"/><path d="M6 10l8 -6"/><path d="M10 6l-6 6l7 7l6 -6"/><path d="M4 20l3.5 -3.5"/></svg>
+      <span class="sb-label">K-Law</span>
+    </a>
+    <a href="https://openhash.kr" class="sb-item">
+      <svg class="sb-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 15l6 -6"/><path d="M11 6l.463 -.536a5 5 0 0 1 7.071 7.072l-.534 .464"/><path d="M13 18l-.397 .534a5.068 5.068 0 0 1 -7.127 0a4.972 4.972 0 0 1 0 -7.071l.524 -.463"/></svg>
+      <span class="sb-label">OpenHash</span>
+    </a>
+  </nav>
+
+  <div class="sb-bottom">
+    <a href="https://gopang.net" class="sb-item">
+      <svg class="sb-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l14 0"/><path d="M5 12l6 6"/><path d="M5 12l6 -6"/></svg>
+      <span class="sb-label">고팡으로 돌아가기</span>
+    </a>
   </div>
 </aside>
 
-<!-- Main -->
-<div class="app-shell">
-  <main class="main">
-
-    <!-- Page Header -->
-    <div class="page-header" id="hero">
-      <div class="page-header-left">
-        <h1>K-Police · AI 치안 서비스</h1>
-        <p>모든 시민·기관·사물에 전담 AI 경찰관이 배정됩니다. 범죄 예방, 신고, 출동, 소송 원스톱.</p>
-      </div>
-      <div class="page-header-actions">
-        <button class="btn-topbar" onclick="scrollToSection('chat-section')">AI 상담 시작</button>
-        <button class="btn-topbar dark" onclick="location.href='ops.html'">상황실 입장</button>
-      </div>
-    </div>
-
-    <!-- Stats Row -->
-    <div class="stats-row">
-      <div class="stat-cell">
-        <div class="stat-cell-label"><span class="stat-dot-green"></span>실시간 요원</div>
-        <div class="stat-cell-val">247</div>
-        <div class="stat-cell-sub">전국 대기 중</div>
-      </div>
-      <div class="stat-cell">
-        <div class="stat-cell-label">오늘 신고</div>
-        <div class="stat-cell-val">1,482</div>
-        <div class="stat-cell-sub">+12% 전일 대비</div>
-      </div>
-      <div class="stat-cell">
-        <div class="stat-cell-label">평균 출동 시간</div>
-        <div class="stat-cell-val">4.2<span style="font-size:14px;font-weight:500;color:var(--gray-500)">분</span></div>
-        <div class="stat-cell-sub">CRITICAL 기준</div>
-      </div>
-      <div class="stat-cell">
-        <div class="stat-cell-label">PDV 기록 정확도</div>
-        <div class="stat-cell-val">99.7<span style="font-size:14px;font-weight:500;color:var(--gray-500)">%</span></div>
-        <div class="stat-cell-sub">K-Law 연동</div>
-      </div>
-    </div>
-
-    <!-- Section label -->
-    <div class="section-label" id="chat-section">
-      <span>AI 경찰관 상담</span>
-      <span class="section-label-desc">채팅으로 실시간 연결</span>
-    </div>
-
-    <!-- Chat + Info grid -->
-    <div class="content-grid">
-
-      <!-- Left: Chat Panel -->
-      <div class="left-col">
-        <div class="chat-panel" style="max-height:600px">
-          <div class="danger-banner" id="danger-banner"></div>
-          <div class="panel-header">
-            <div class="panel-avatar">👮</div>
-            <div class="panel-title-group">
-              <div class="panel-name">AI 경찰관</div>
-              <div class="panel-status"><span class="stat-dot-green"></span><span>24시간 근무 중</span></div>
-            </div>
-            <div class="panel-badge" id="chat-badge">L0</div>
-          </div>
-
-          <div class="mode-tabs">
-            <button class="mode-tab active" id="tab-chat" onclick="setMode('chat')">상담</button>
-            <button class="mode-tab" id="tab-report" onclick="setMode('report')">신고</button>
-            <button class="mode-tab" id="tab-schedule" onclick="setMode('schedule')">일정</button>
-            <button class="mode-tab" id="tab-case" onclick="setMode('case')">사건</button>
-          </div>
-
-          <div class="chips" id="chips"></div>
-
-          <div id="chat-body"></div>
-
-          <div class="emergency-bar">
-            <button class="e-btn red" onclick="if(confirm('112에 전화하시겠습니까?'))location.href='tel:112'">📞 112</button>
-            <button class="e-btn orange" onclick="if(confirm('118?'))location.href='tel:118'">🖥 118</button>
-            <button class="e-btn dark" onclick="location.href='ops.html'">🚔 상황실</button>
-          </div>
-
-          <div class="input-area">
-            <div class="input-wrap">
-              <textarea id="msg-input" rows="1" placeholder="상황을 말씀해 주세요…"></textarea>
-            </div>
-            <button class="send-btn" id="send-btn" disabled>
-              <svg viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4 20-7z"/></svg>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Right: Info Panels -->
-      <div class="right-col">
-
-        <!-- PDV status -->
-        <div class="info-panel open">
-          <div class="info-panel-header" onclick="togglePanel(this)">
-            <div>
-              <div class="info-panel-title">PDV 현황</div>
-              <div class="info-panel-sub">최근 기록 미리보기</div>
-            </div>
-            <span class="toggle-icon">▶</span>
-          </div>
-          <div class="info-panel-body">
-            <div class="pdv-row"><span class="pdv-key">svc</span><span class="pdv-val green">police</span></div>
-            <div class="pdv-row"><span class="pdv-key">type</span><span class="pdv-val">police_session</span></div>
-            <div class="pdv-row"><span class="pdv-key">risk_level</span><span class="pdv-val" id="pdv-risk">—</span></div>
-            <div class="pdv-row"><span class="pdv-key">case_number</span><span class="pdv-val" id="pdv-case">—</span></div>
-            <div class="pdv-row"><span class="pdv-key">dispatch_sent</span><span class="pdv-val" id="pdv-dispatch">false</span></div>
-          </div>
-        </div>
-
-        <!-- Crime types -->
-        <div class="info-panel open" id="crime-section-side">
-          <div class="info-panel-header" onclick="togglePanel(this)">
-            <div>
-              <div class="info-panel-title">범죄 유형별 신고</div>
-              <div class="info-panel-sub">클릭 → AI 상담 시작</div>
-            </div>
-            <span class="toggle-icon">▶</span>
-          </div>
-          <div class="crime-grid-inner" id="crime-grid-side"></div>
-        </div>
-
-        <!-- Features -->
-        <div class="info-panel" id="features-section">
-          <div class="info-panel-header" onclick="togglePanel(this)">
-            <div>
-              <div class="info-panel-title">핵심 기능</div>
-              <div class="info-panel-sub">6가지 서비스</div>
-            </div>
-            <span class="toggle-icon">▶</span>
-          </div>
-          <div class="info-panel-body feature-list">
-            <div class="feature-row">
-              <div class="feature-icon-box">🛡️</div>
-              <div><div class="feature-row-title">24시간 보디가드</div><div class="feature-row-desc">GPS·일정·채팅 종합 분석, 위험 발생 전 개입</div></div>
-            </div>
-            <div class="feature-row">
-              <div class="feature-icon-box">🚔</div>
-              <div><div class="feature-row-title">AI 출동 지시</div><div class="feature-row-desc">Haversine 거리 계산 자동 자원 배치</div></div>
-            </div>
-            <div class="feature-row">
-              <div class="feature-icon-box">🤖</div>
-              <div><div class="feature-row-title">자율주행 차량 지휘</div><div class="feature-row-desc">WebSocket으로 AV에 목적지·임무 직접 전달</div></div>
-            </div>
-            <div class="feature-row">
-              <div class="feature-icon-box">📋</div>
-              <div><div class="feature-row-title">형사 소송 패키지</div><div class="feature-row-desc">범죄 자동 특정 → 국가 vs 피의자 소송 즉시 생성</div></div>
-            </div>
-            <div class="feature-row">
-              <div class="feature-icon-box">🖥️</div>
-              <div><div class="feature-row-title">상황실 모니터링</div><div class="feature-row-desc">사람 경찰관이 전 사건·요원·차량 실시간 관리</div></div>
-            </div>
-            <div class="feature-row">
-              <div class="feature-icon-box">📊</div>
-              <div><div class="feature-row-title">PDV 6하원칙 기록</div><div class="feature-row-desc">암호화 저장, K-Law 법률 시스템 연동</div></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- User types -->
-        <div class="info-panel">
-          <div class="info-panel-header" onclick="togglePanel(this)">
-            <div>
-              <div class="info-panel-title">보호 대상</div>
-              <div class="info-panel-sub">사람·기관·사물</div>
-            </div>
-            <span class="toggle-icon">▶</span>
-          </div>
-          <div class="user-types-inner">
-            <div class="user-type-row">
-              <div class="user-type-icon-box">👤</div>
-              <div>
-                <div class="user-type-name">개인</div>
-                <div class="user-type-desc">1:1 맞춤 보호. 야간 귀가·해외 여행 동행.</div>
-                <div class="type-tags"><span class="type-tag">보이스피싱</span><span class="type-tag">스토킹</span><span class="type-tag">가정폭력</span></div>
-              </div>
-            </div>
-            <div class="user-type-row">
-              <div class="user-type-icon-box">🏢</div>
-              <div>
-                <div class="user-type-name">기관</div>
-                <div class="user-type-desc">시설 보안, 직원 안전, 비상 대응 지원.</div>
-                <div class="type-tags"><span class="type-tag">시설보안</span><span class="type-tag">사이버보안</span></div>
-              </div>
-            </div>
-            <div class="user-type-row">
-              <div class="user-type-icon-box">📡</div>
-              <div>
-                <div class="user-type-name">사물 (IoT)</div>
-                <div class="user-type-desc">CCTV·차량·스마트 잠금장치 실시간 감지.</div>
-                <div class="type-tags"><span class="type-tag">해킹감지</span><span class="type-tag">물리훼손</span></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-      </div>
-    </div>
-
-    <!-- Crime Grid Full Section -->
-    <div class="crime-section" id="crime-section">
-      <div class="crime-section-header">
-        <h2>모든 범죄 유형에 대응합니다</h2>
-        <p>클릭하면 AI 경찰관과 바로 상담을 시작합니다</p>
-      </div>
-      <div class="crime-grid-full" id="crime-grid"></div>
-    </div>
-
-    <!-- Architecture Section -->
-    <div class="section-label" id="arch-section">
-      <span>시스템 아키텍처</span>
-      <span class="section-label-desc">3계층 구조</span>
-    </div>
-    <div style="padding:0 32px 24px;border-bottom:1px solid var(--border)">
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;max-width:900px">
-        <div class="arch-layer-row">
-          <div class="arch-layer-label">Layer 1</div>
-          <div class="arch-layer-name" style="color:#3b82f6">시민 인터페이스</div>
-          <div class="arch-items">
-            <span class="arch-item-tag">24시간 AI 채팅</span>
-            <span class="arch-item-tag">GPS 스트림</span>
-            <span class="arch-item-tag">사건번호 발급</span>
-            <span class="arch-item-tag">소송 패키지</span>
-          </div>
-        </div>
-        <div class="arch-layer-row">
-          <div class="arch-layer-label">Layer 2</div>
-          <div class="arch-layer-name" style="color:#22c55e">AI 지휘 엔진</div>
-          <div class="arch-items">
-            <span class="arch-item-tag">위험 4단계 분류</span>
-            <span class="arch-item-tag">Haversine 배치</span>
-            <span class="arch-item-tag">WebSocket AV</span>
-            <span class="arch-item-tag">자동 출동</span>
-          </div>
-        </div>
-        <div class="arch-layer-row">
-          <div class="arch-layer-label">Layer 3</div>
-          <div class="arch-layer-name" style="color:#f472b6">상황실</div>
-          <div class="arch-items">
-            <span class="arch-item-tag">Canvas 지도</span>
-            <span class="arch-item-tag">출동 승인</span>
-            <span class="arch-item-tag">AV 모니터링</span>
-            <span class="arch-item-tag">시뮬레이션</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- PDV Section -->
-    <div class="pdv-section" id="pdv-section">
-      <div class="pdv-section-grid">
-        <div class="pdv-section-text">
-          <h2>모든 사건이 PDV에 기록됩니다</h2>
-          <p>6하원칙 기반 고팡 PDV에 상담·사건·출동·소송 이력이 저장되어 연속 피해 추적과 법적 증거로 활용됩니다.</p>
-          <ul class="pdv-check-list">
-            <li>암호화 저장, 사용자만 열람</li>
-            <li>범죄 유형 자동 분류</li>
-            <li>출동 이력 및 소송 연동</li>
-            <li>K-Law 법률 시스템 연동</li>
-          </ul>
-        </div>
-        <div class="pdv-record-box">
-          <div class="pdv-record-header">PDV 레코드 샘플</div>
-          <div class="pdv-record-body">
-            <div class="pdv-rec-row"><span class="pdv-rec-key">svc</span><span class="pdv-rec-val">police</span></div>
-            <div class="pdv-rec-row"><span class="pdv-rec-key">type</span><span class="pdv-rec-val">police_session_complete</span></div>
-            <div class="pdv-rec-row"><span class="pdv-rec-key">what.risk_level</span><span class="pdv-rec-val">HIGH</span></div>
-            <div class="pdv-rec-row"><span class="pdv-rec-key">what.case_number</span><span class="pdv-rec-val">KP-20260602-4521</span></div>
-            <div class="pdv-rec-row"><span class="pdv-rec-key">what.dispatch_sent</span><span class="pdv-rec-val">true</span></div>
-            <div class="pdv-rec-row"><span class="pdv-rec-key">what.lawsuit_created</span><span class="pdv-rec-val">true</span></div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Footer -->
-    <footer class="footer">
-      <div class="footer-logo">
-        <div class="logo-mark" style="width:22px;height:22px;font-size:12px">👮</div>
-        K-Police · AI City Inc.
-      </div>
-      <div class="footer-note">police.gopang.net · Powered by Gopang &amp; OpenHash</div>
-    </footer>
-
-  </main>
+<!-- BANNER -->
+<div class="banner" id="site-banner">
+  <strong>K-Police</strong>는 고팡 플랫폼의 AI 치안 서비스입니다. 모든 시민·기관·사물에 전담 경찰관이 배정됩니다.
+  <a href="webapp.html">앱 열기 →</a>
+  <button class="banner-close" onclick="document.getElementById('site-banner').style.display='none'">✕</button>
 </div>
 
-<script src="js/config.js"></script>
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="desktop.html" class="logo">
+      <div class="logo-mark">👮</div>
+      K-Police
+    </a>
+    <div class="nav-links nav-links-desktop">
+      <a href="#overview">서비스 소개</a>
+      <a href="#features">핵심 기능</a>
+      <a href="#crimes">범죄 유형</a>
+      <a href="#pdv">PDV</a>
+      <a href="#arch">아키텍처</a>
+      <a href="dashboard.html">대시보드</a>
+    </div>
+    <div class="nav-right">
+      <a href="dashboard.html" class="btn">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 4h4a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1v-6a1 1 0 0 1 1 -1"/><path d="M5 16h4a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1v-2a1 1 0 0 1 1 -1"/><path d="M15 12h4a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1v-6a1 1 0 0 1 1 -1"/><path d="M15 4h4a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1v-2a1 1 0 0 1 1 -1"/></svg>
+        상황실
+      </a>
+      <a href="webapp.html" class="btn btn-brand">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+        K-Police 앱 열기
+      </a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero" id="overview">
+  <div class="hero-badge"><span class="pulse"></span>고팡 SSO 연동 · PDV 기록 활성화</div>
+  <h1>당신만을 위한 AI 경찰관이<br>24시간 지킵니다</h1>
+  <p class="hero-sub">모든 시민·기관·사물에 전담 AI 경찰관이 배정됩니다. 범죄 예방, 신고 접수, 출동 지시, 소송 개시까지 원스톱으로 처리하며, 모든 이력은 고팡 PDV에 6하원칙으로 암호화 기록됩니다.</p>
+  <div class="hero-actions">
+    <a href="webapp.html" class="btn btn-brand">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+      K-Police 앱 열기
+    </a>
+    <a href="dashboard.html" class="btn">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 4h4a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1v-6a1 1 0 0 1 1 -1"/><path d="M5 16h4a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1v-2a1 1 0 0 1 1 -1"/><path d="M15 12h4a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1v-6a1 1 0 0 1 1 -1"/><path d="M15 4h4a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1v-2a1 1 0 0 1 1 -1"/></svg>
+      상황실 대시보드
+    </a>
+    <a href="#" class="btn btn-red" onclick="if(confirm('112에 전화하시겠습니까?'))location.href='tel:112';return false;">
+      📞 112 신고
+    </a>
+  </div>
+  <div class="stat-strip">
+    <div class="stat"><div class="stat-val"><em>24시간</em></div><div class="stat-lbl">AI 경찰관 상시 대기</div></div>
+    <div class="stat"><div class="stat-val"><em>4.2분</em></div><div class="stat-lbl">평균 출동 시간</div></div>
+    <div class="stat"><div class="stat-val"><em>0.1초</em></div><div class="stat-lbl">AI 위험도 분류</div></div>
+    <div class="stat"><div class="stat-val"><em>193개국</em></div><div class="stat-lbl">K-Law 국제 연동</div></div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- 서비스 개요 -->
+<section id="features" class="section">
+  <div class="container">
+    <div class="section-hd">
+      <h2>핵심 기능</h2>
+    </div>
+    <p class="service-desc">
+      K-Police는 고팡 플랫폼의 AI 치안 서비스입니다.<br>
+      <span class="fd-bullet">◆</span> 모든 시민·기관·사물에 전담 AI 경찰관이 배정됩니다. 별도 신청 없이 고팡 계정만으로 즉시 이용 가능합니다.<br>
+      <span class="fd-bullet">◆</span> AI 경찰관은 GPS·일정·채팅을 종합 분석해 위험 발생 전에 개입합니다. 야간 이동, 낯선 차량 탑승, 우범 지역 접근 시 자동 경보를 발령합니다.<br>
+      <span class="fd-bullet">◆</span> 신고 접수 즉시 사건번호가 발급되고, CRITICAL·HIGH 사건은 Haversine 거리 계산으로 가장 가까운 요원이 자동 출동합니다.<br>
+      <span class="fd-bullet">◆</span> 자율주행 이송차량에 WebSocket으로 목적지와 임무를 직접 전달합니다. 용의자 이송과 현장 출동이 자동화됩니다.<br>
+      <span class="fd-bullet">◆</span> 범죄 유형이 특정되면 형사소송(국가 vs 피의자) 패키지를 즉시 생성하고, K-Law 법률 시스템과 연동합니다.<br>
+      <span class="fd-bullet">◆</span> 모든 상담·사건·출동·소송 이력은 고팡 PDV 6하원칙으로 암호화 기록되며, 사용자만 열람 가능합니다.
+    </p>
+    <p class="service-closing">이상의 모든 과정은 사람의 개입 없이 오직 K-Police 시스템에 의해 진행되며, 사람 경찰관은 상황실 대시보드에서 승인·오버라이드 권한을 보유합니다.</p>
+    <div class="feature-grid">
+      <div class="feature-cell">
+        <div class="feature-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 3a12 12 0 0 0 8.5 3a12 12 0 0 1 -8.5 15a12 12 0 0 1 -8.5 -15a12 12 0 0 0 8.5 -3"/></svg>
+        </div>
+        <div class="feature-title">24시간 보디가드</div>
+        <p class="feature-desc">GPS·일정·채팅을 종합 분석해 위험 발생 전에 개입합니다. 야간 이동, 낯선 차량 탑승, 해외 우범 지역 접근 시 자동 경보.</p>
+        <span class="feature-badge">예방적 치안</span>
+      </div>
+      <div class="feature-cell">
+        <div class="feature-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+        <div class="feature-title">AI 출동 지시</div>
+        <p class="feature-desc">사건 발생 시 Haversine 거리 계산으로 가장 가깝고 전문성 있는 요원을 자동 선발합니다. CRITICAL은 즉시 자동 출동.</p>
+        <span class="feature-badge red">CRITICAL 즉시 출동</span>
+      </div>
+      <div class="feature-cell">
+        <div class="feature-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><circle cx="12" cy="12" r="3"/><path d="M6 12H4M20 12h-2M12 4V2M12 22v-2M6.34 6.34L4.93 4.93M19.07 19.07l-1.41-1.41M6.34 17.66L4.93 19.07M19.07 4.93l-1.41 1.41"/></svg>
+        </div>
+        <div class="feature-title">자율주행 차량 지휘</div>
+        <p class="feature-desc">자율주행 이송차량에 WebSocket으로 목적지와 임무를 직접 전달합니다. 용의자 이송·현장 출동 완전 자동화.</p>
+        <span class="feature-badge">AV WebSocket 연동</span>
+      </div>
+      <div class="feature-cell">
+        <div class="feature-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        </div>
+        <div class="feature-title">형사 소송 패키지</div>
+        <p class="feature-desc">신고 대화에서 범죄 유형을 자동 특정하고, 국가(검찰청) vs 피의자 형사소송 패키지를 즉시 생성합니다.</p>
+        <span class="feature-badge">K-Law 연동</span>
+      </div>
+      <div class="feature-cell">
+        <div class="feature-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+        </div>
+        <div class="feature-title">상황실 모니터링</div>
+        <p class="feature-desc">사람 경찰관이 실시간 지도에서 전 사건·요원·차량을 모니터링합니다. 출동 승인·오버라이드 권한 보유.</p>
+        <span class="feature-badge">Canvas 실시간 지도</span>
+      </div>
+      <div class="feature-cell">
+        <div class="feature-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 11m0 2a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v6a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2z"/><path d="M12 16m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/><path d="M8 11v-4a4 4 0 0 1 8 0v4"/></svg>
+        </div>
+        <div class="feature-title">PDV 6하원칙 기록</div>
+        <p class="feature-desc">모든 상담·사건·출동·소송 이력이 고팡 PDV에 암호화 저장됩니다. K-Law 법률 시스템과 연동하여 법적 증거로 활용.</p>
+        <span class="feature-badge">위변조 불가</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- 범죄 유형 -->
+<section id="crimes" class="section">
+  <div class="container">
+    <div class="section-hd">
+      <h2>모든 범죄 유형에 대응합니다</h2>
+      <p>K-Police 앱을 열면 AI 경찰관과 즉시 상담을 시작할 수 있습니다.</p>
+    </div>
+    <div class="feature-grid" style="grid-template-columns:repeat(4,1fr)">
+      <div class="feature-cell" style="text-align:center">
+        <div class="feature-icon" style="margin:0 auto 12px">📞</div>
+        <div class="feature-title">보이스피싱</div>
+        <p class="feature-desc" style="font-size:12px">전화·문자 사기, 기관 사칭</p>
+      </div>
+      <div class="feature-cell" style="text-align:center">
+        <div class="feature-icon" style="margin:0 auto 12px">👁️</div>
+        <div class="feature-title">스토킹</div>
+        <p class="feature-desc" style="font-size:12px">추적·미행·반복 접근</p>
+      </div>
+      <div class="feature-cell" style="text-align:center">
+        <div class="feature-icon" style="margin:0 auto 12px">🏠</div>
+        <div class="feature-title">가정폭력</div>
+        <p class="feature-desc" style="font-size:12px">가정 내 학대·폭행</p>
+      </div>
+      <div class="feature-cell" style="text-align:center">
+        <div class="feature-icon" style="margin:0 auto 12px">💻</div>
+        <div class="feature-title">사이버범죄</div>
+        <p class="feature-desc" style="font-size:12px">해킹·랜섬웨어·개인정보 침해</p>
+      </div>
+      <div class="feature-cell" style="text-align:center">
+        <div class="feature-icon" style="margin:0 auto 12px">📸</div>
+        <div class="feature-title">불법촬영</div>
+        <p class="feature-desc" style="font-size:12px">몰카·딥페이크·유포</p>
+      </div>
+      <div class="feature-cell" style="text-align:center">
+        <div class="feature-icon" style="margin:0 auto 12px">💰</div>
+        <div class="feature-title">금융사기</div>
+        <p class="feature-desc" style="font-size:12px">투자사기·계좌 탈취</p>
+      </div>
+      <div class="feature-cell" style="text-align:center">
+        <div class="feature-icon" style="margin:0 auto 12px">🔪</div>
+        <div class="feature-title">폭행·협박</div>
+        <p class="feature-desc" style="font-size:12px">신체적 위협·공갈</p>
+      </div>
+      <div class="feature-cell" style="text-align:center">
+        <div class="feature-icon" style="margin:0 auto 12px">🏪</div>
+        <div class="feature-title">절도·강도</div>
+        <p class="feature-desc" style="font-size:12px">재산 침해·강제 탈취</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- 이용 프로세스 -->
+<section class="section">
+  <div class="container">
+    <div class="section-hd">
+      <h2>이용 방법</h2>
+      <p>고팡 계정 하나로 즉시 이용 가능합니다</p>
+    </div>
+    <div class="flow-wrap">
+      <div class="flow-row">
+        <div class="flow-step">
+          <div class="flow-num">1</div>
+          <div class="flow-title">고팡 SSO 로그인</div>
+          <div class="flow-desc">고팡 계정으로 자동 인증됩니다. 별도 가입 없이 즉시 이용 가능합니다.</div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num">2</div>
+          <div class="flow-title">AI 경찰관 배정</div>
+          <div class="flow-desc">로그인 즉시 전담 AI 경찰관이 배정됩니다. GPS·일정 모니터링을 시작합니다.</div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num">3</div>
+          <div class="flow-title">신고 또는 상담</div>
+          <div class="flow-desc">채팅으로 신고 접수, 사건번호 발급, 출동 지시가 즉시 처리됩니다.</div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num">4</div>
+          <div class="flow-title">PDV 자동 기록</div>
+          <div class="flow-desc">모든 이력이 6하원칙 PDV로 암호화 기록되어 법적 증거로 활용됩니다.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- PDV -->
+<section id="pdv" class="section">
+  <div class="container">
+    <div class="section-hd">
+      <h2>PDV — 6하원칙 기록</h2>
+      <p>모든 사건 이력이 고팡 PDV에 암호화 저장됩니다</p>
+    </div>
+    <div class="pdv-grid">
+      <div class="panel">
+        <div class="panel-hd">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          PDV 레코드 샘플 — 접속
+        </div>
+        <table class="rt">
+          <tr><td>svc</td><td class="blue">police</td></tr>
+          <tr><td>type</td><td>event</td></tr>
+          <tr><td>who.ipv6</td><td>2601:db80:bd05:…</td></tr>
+          <tr><td>who.level</td><td>L3</td></tr>
+          <tr><td>what.summary</td><td>K-Police 접속</td></tr>
+          <tr><td>how.method</td><td>고팡 SSO (session)</td></tr>
+        </table>
+      </div>
+      <div class="panel">
+        <div class="panel-hd">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          PDV 레코드 샘플 — 사건
+        </div>
+        <table class="rt">
+          <tr><td>svc</td><td class="blue">police</td></tr>
+          <tr><td>type</td><td>police_session_complete</td></tr>
+          <tr><td>what.risk_level</td><td class="red">HIGH</td></tr>
+          <tr><td>what.case_number</td><td>KP-20260604-4521</td></tr>
+          <tr><td>what.dispatch_sent</td><td class="blue">true</td></tr>
+          <tr><td>what.lawsuit_created</td><td class="blue">true</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- 아키텍처 -->
+<section id="arch" class="section">
+  <div class="container">
+    <div class="section-hd">
+      <h2>3계층 시스템 아키텍처</h2>
+      <p>시민 인터페이스 → AI 지휘 엔진 → 상황실</p>
+    </div>
+    <div class="access-grid">
+      <div class="access-card">
+        <h3>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/></svg>
+          Layer 1 — 시민 인터페이스
+        </h3>
+        <p>K-Police 앱(webapp.html) 및 데스크탑 페이지. 24시간 AI 채팅 상담, GPS 실시간 위치 스트림, 일정 위험 예보, 범죄 신고 접수 및 사건번호 발급, 형사 소송 패키지 생성.</p>
+        <ul class="access-list">
+          <li>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10"/></svg>
+            DeepSeek V4 Pro AI 경찰관
+          </li>
+          <li>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10"/></svg>
+            고팡 SSO 자동 인증
+          </li>
+          <li>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10"/></svg>
+            PDV 6하원칙 자동 기록
+          </li>
+        </ul>
+        <a href="webapp.html" class="btn btn-brand" style="font-size:13px">K-Police 앱 열기</a>
+      </div>
+      <div class="access-card">
+        <h3>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><circle cx="12" cy="12" r="3"/><path d="M6 12H4M20 12h-2M12 4V2M12 22v-2"/></svg>
+          Layer 2 — AI 지휘 엔진
+        </h3>
+        <p>RiskEngine·DispatchEngine·LawsuitEngine이 서버리스로 구동됩니다. 위험 수준 4단계 분류, Haversine 거리 기반 자원 배치, CRITICAL 자동 출동, WebSocket AV 차량 명령, BroadcastChannel 상황실 연동.</p>
+        <ul class="access-list">
+          <li>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10"/></svg>
+            LOW / HIGH / CRITICAL 4단계
+          </li>
+          <li>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10"/></svg>
+            Haversine 거리 최적화 배치
+          </li>
+          <li>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10"/></svg>
+            gopang-proxy Worker v4.3
+          </li>
+        </ul>
+        <a href="ops.html" class="btn" style="font-size:13px">상황실(Ops) 열기</a>
+      </div>
+      <div class="access-card">
+        <h3>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 4h4a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1v-6a1 1 0 0 1 1 -1"/><path d="M5 16h4a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1v-2a1 1 0 0 1 1 -1"/><path d="M15 12h4a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1v-6a1 1 0 0 1 1 -1"/><path d="M15 4h4a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1v-2a1 1 0 0 1 1 -1"/></svg>
+          Layer 3 — 상황실
+        </h3>
+        <p>경찰청 전용 대시보드. Canvas 실시간 지도에서 전 사건·요원·차량을 모니터링합니다. 출동 승인·오버라이드, AV 자율주행 명령 모니터링, 시뮬레이션 4종 지원.</p>
+        <ul class="access-list">
+          <li>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10"/></svg>
+            Canvas 실시간 사건 지도
+          </li>
+          <li>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10"/></svg>
+            Supabase pdv_log SQL 조회
+          </li>
+          <li>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10"/></svg>
+            사건·요원·차량 통계
+          </li>
+        </ul>
+        <a href="dashboard.html" class="btn" style="font-size:13px">상황실 대시보드 열기</a>
+      </div>
+      <div class="access-card">
+        <h3>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 15l6 -6"/><path d="M11 6l.463 -.536a5 5 0 0 1 7.071 7.072l-.534 .464"/><path d="M13 18l-.397 .534a5.068 5.068 0 0 1 -7.127 0a4.972 4.972 0 0 1 0 -7.071l.524 -.463"/></svg>
+          인프라 — OpenHash + Supabase
+        </h3>
+        <p>gopang-proxy Worker(v4.3)가 DeepSeek API, Kakao 역지오코딩, SSO를 프록시합니다. 모든 PDV 기록은 Supabase ebbecjfrwaswbdybbgiu에 저장됩니다.</p>
+        <ul class="access-list">
+          <li>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10"/></svg>
+            svc alias: kpolice → police
+          </li>
+          <li>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10"/></svg>
+            Cloudflare Worker v4.3
+          </li>
+          <li>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10"/></svg>
+            OpenHash 분산원장 연동
+          </li>
+        </ul>
+        <a href="https://openhash.kr" class="btn" style="font-size:13px" target="_blank" rel="noopener">OpenHash →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-brand">👮 K-Police</div>
+        <p class="footer-desc">고팡 플랫폼의 AI 치안 서비스 · OpenHash 분산원장 기반<br>모든 시민·기관·사물의 전담 AI 경찰관</p>
+      </div>
+      <div>
+        <div class="footer-col-title">서비스</div>
+        <ul class="footer-links">
+          <li><a href="webapp.html">K-Police 앱</a></li>
+          <li><a href="dashboard.html">상황실 대시보드</a></li>
+          <li><a href="ops.html">상황실 (Ops)</a></li>
+          <li><a href="https://gopang.net">고팡 홈</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="footer-col-title">연동 서비스</div>
+        <ul class="footer-links">
+          <li><a href="https://klaw.openhash.kr">K-Law</a></li>
+          <li><a href="https://market.gopang.net">고팡 마켓</a></li>
+          <li><a href="https://tax.gopang.net">고팡 세무</a></li>
+          <li><a href="https://openhash.kr">OpenHash</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="footer-col-title">법적 안내</div>
+        <ul class="footer-links">
+          <li><a href="#">이용 약관</a></li>
+          <li><a href="#">개인정보처리방침</a></li>
+          <li><a href="#">면책 조항</a></li>
+          <li><a href="#">긴급 신고: 112</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 K-Police · AI City Inc.</span>
+      <span>police.gopang.net · Powered by Gopang &amp; OpenHash · 제주 시범 서비스</span>
+    </div>
+  </div>
+</footer>
+
+<!-- CHAT MODAL -->
+<div class="chat-modal-overlay" id="chatOverlay" role="dialog" aria-modal="true" aria-label="K-Police AI 상담">
+  <div class="chat-modal">
+    <div class="chat-modal-hd">
+      <div class="chat-logo">👮</div>
+      <div>
+        <div class="chat-title">K-Police AI 상담</div>
+        <div class="chat-subtitle">DeepSeek V4 Pro 구동</div>
+      </div>
+      <button class="chat-close-btn" onclick="closeChat()" aria-label="닫기">✕</button>
+    </div>
+    <div class="chat-messages" id="chatMessages">
+      <div class="chat-msg ai">안녕하세요! K-Police AI 경찰관입니다. 👮<br>범죄 예방·신고·소송·출동에 관해 무엇이든 질문하세요.</div>
+    </div>
+    <div class="chat-input-row">
+      <textarea class="chat-input" id="chatInput" placeholder="상황을 말씀해 주세요…" rows="1"
+        onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChat();}"></textarea>
+      <button class="chat-send-btn" id="chatSendBtn" onclick="sendChat()" aria-label="전송">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2L15 22L11 13L2 9L22 2z"/></svg>
+      </button>
+    </div>
+    <div class="chat-powered">Powered by DeepSeek V4 Pro · gopang-proxy</div>
+  </div>
+</div>
+
+<!-- FLOAT -->
+<div class="float">
+  <button class="float-btn" onclick="openChat()" aria-label="K-Police AI 상담 열기">
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+  </button>
+  <span class="float-label">AI 상담</span>
+</div>
+
 <script type="module" src="https://gopang.net/auth/subsystem-auth.js"></script>
-<script src="js/risk-engine.js"></script>
-<script src="js/dispatch.js"></script>
-<script src="js/lawsuit.js"></script>
+
 <script>
-// ── State ───────────────────────────────────────────────────
-let _chatHistory    = [];
-let _systemPrompt   = null;
-let _sessionMsgCnt  = 0;
-let _currentRisk    = 'LOW';
-let _currentMode    = 'chat';
-let _activeCaseNum  = null;
-let _activeCrimeInfo = null;
-let _userLocation   = null;
-let _user           = null;
-
-// ── GPS ──────────────────────────────────────────────────────
-navigator.geolocation?.getCurrentPosition(
-  pos => { _userLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude }; },
-  ()  => { _userLocation = { lat: 33.4996, lng: 126.5312 }; }
-);
-
-// ── Sidebar sync with topbar logo area ──────────────────────
-const sidebar = document.getElementById('sidebar');
-const logoArea = document.getElementById('logo-area');
-sidebar.addEventListener('mouseenter', () => logoArea.style.width = 'var(--sidebar-w-open)');
-sidebar.addEventListener('mouseleave', () => logoArea.style.width = 'var(--sidebar-w)');
-
-// ── Nav helpers ──────────────────────────────────────────────
-function scrollToSection(id){
-  document.getElementById(id)?.scrollIntoView({behavior:'smooth'});
-  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-}
-
-function togglePanel(headerEl){
-  const panel = headerEl.closest('.info-panel');
-  panel.classList.toggle('open');
-  const body = panel.querySelector('.info-panel-body, .crime-grid-inner, .feature-list, .arch-grid-inner, .user-types-inner');
-  if(body) body.style.display = panel.classList.contains('open') ? '' : 'none';
-}
-
-// ── Crime types ──────────────────────────────────────────────
-const CRIMES = [
-  {icon:'📞',name:'보이스피싱',desc:'전화·문자 사기',msg:'보이스피싱 의심 전화를 받았습니다.'},
-  {icon:'👁️',name:'스토킹',desc:'추적·미행·괴롭힘',msg:'스토킹 피해를 당하고 있습니다.'},
-  {icon:'🏠',name:'가정폭력',desc:'가정 내 학대·폭행',msg:'가정폭력 피해가 있습니다.'},
-  {icon:'💻',name:'사이버범죄',desc:'해킹·랜섬웨어',msg:'사이버 범죄 피해를 입었습니다.'},
-  {icon:'📸',name:'불법촬영',desc:'몰카·딥페이크',msg:'불법촬영 피해가 있습니다.'},
-  {icon:'💰',name:'금융사기',desc:'투자사기·계좌 탈취',msg:'금융 사기 피해를 입었습니다.'},
-  {icon:'🔪',name:'폭행·협박',desc:'신체적 위협',msg:'폭행 또는 협박을 당했습니다.'},
-  {icon:'🏪',name:'절도·강도',desc:'재산 침해',msg:'절도 피해를 당했습니다.'},
-];
-
-document.getElementById('crime-grid').innerHTML = CRIMES.map(c => `
-  <div class="crime-card-full" onclick="focusChat();setMode('report');quickSend('${c.msg}')">
-    <div class="crime-card-icon">${c.icon}</div>
-    <div class="crime-card-name">${c.name}</div>
-    <div class="crime-card-desc">${c.desc}</div>
-  </div>`).join('');
-
-document.getElementById('crime-grid-side').innerHTML = CRIMES.map(c => `
-  <div class="crime-tile" onclick="focusChat();setMode('report');quickSend('${c.msg}')">
-    <div class="crime-tile-icon">${c.icon}</div>
-    <div class="crime-tile-name">${c.name}</div>
-    <div class="crime-tile-desc">${c.desc}</div>
-  </div>`).join('');
-
-// ── Mode tabs ────────────────────────────────────────────────
-function setMode(mode) {
-  _currentMode = mode;
-  ['chat','report','schedule','case'].forEach(m =>
-    document.getElementById(`tab-${m}`)?.classList.toggle('active', m === mode));
-
-  const chipSets = {
-    chat:     [['🚨 긴급','지금 위험!',true],['야간 귀가','오늘 밤 혼자 귀가합니다.',false],['일정 공유','일정을 공유할게요.',false],['안전 확인','현재 위치가 안전한가요?',false]],
-    report:   [['폭행 신고','폭행 피해를 신고합니다.',true],['사기 신고','사기 피해를 신고합니다.',false],['스토킹','스토킹 피해를 신고합니다.',false],['사이버범죄','해킹 피해를 신고합니다.',false]],
-    schedule: [['오늘 일정','오늘 일정을 공유하겠습니다.',false],['야간 외출','오늘 밤 외출 계획이 있습니다.',false],['해외 여행','해외 여행 일정을 공유합니다.',false],['낯선 차량','낯선 차량을 타야 합니다.',false]],
-    case:     [['사건 조회','진행 중인 사건을 알려주세요.',false],['소송 현황','소송 진행 현황을 알려주세요.',false]],
-  };
-  document.getElementById('chips').innerHTML =
-    (chipSets[mode]||chipSets.chat).map(([label,msg,danger]) =>
-      `<div class="chip${danger?' danger':''}" onclick="quickSend('${msg}')">${label}</div>`
-    ).join('');
-}
-setMode('chat');
-
-// ── Util ─────────────────────────────────────────────────────
-function fmtTime(d){ return d.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit',hour12:true}); }
-function escHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-function mdToHtml(s){
-  return s.replace(/\*\*(.*?)\*\*/g,'<b>$1</b>').replace(/\*(.*?)\*/g,'<em>$1</em>')
-    .replace(/`(.*?)`/g,'<code style="background:var(--gray-100);padding:1px 4px;border-radius:3px;font-size:11px;font-family:monospace">$1</code>')
-    .replace(/\n/g,'<br>');
-}
-function scrollBottom(){ const b=document.getElementById('chat-body'); setTimeout(()=>b.scrollTop=b.scrollHeight,50); }
-function focusChat(){ document.getElementById('chat-section').scrollIntoView({behavior:'smooth'}); setTimeout(()=>document.getElementById('msg-input').focus(),400); }
-function quickSend(text){ sendMessage(text); }
-
-function updateDangerBanner(risk){
-  const el = document.getElementById('danger-banner');
-  el.className = 'danger-banner';
-  if(risk==='CRITICAL'){ el.classList.add('critical'); el.textContent='🚨 CRITICAL — 즉시 112에 전화하세요'; }
-  else if(risk==='HIGH'){ el.classList.add('high'); el.textContent='⚠️ HIGH — 빠른 신고가 필요합니다'; }
-  // update PDV panel
-  document.getElementById('pdv-risk').textContent = risk;
-  document.getElementById('pdv-risk').style.color = risk==='CRITICAL'?'var(--red)':risk==='HIGH'?'var(--orange)':'var(--gray-900)';
-}
-
-// ── Render ───────────────────────────────────────────────────
-function appendAI(text, risk='LOW', extraClass=''){
-  const wrap = document.createElement('div'); wrap.className = 'bubble-ai';
-  const cls = risk==='CRITICAL'?'critical-msg':risk==='HIGH'?'high-msg':extraClass||'';
-  wrap.innerHTML = `<div class="b-avatar">👮</div><div class="bubble-ai-text ${cls}">${mdToHtml(text)}</div>`;
-  document.getElementById('chat-body').appendChild(wrap);
-  const t = document.createElement('div'); t.className = 'bubble-time'; t.textContent = fmtTime(new Date());
-  document.getElementById('chat-body').appendChild(t);
-  scrollBottom();
-}
-
-function appendUser(text){
-  const wrap = document.createElement('div'); wrap.className = 'bubble-user';
-  wrap.innerHTML = `<div class="bubble-user-text">${escHtml(text)}</div><div class="bubble-user-time">${fmtTime(new Date())}</div>`;
-  document.getElementById('chat-body').appendChild(wrap); scrollBottom();
-}
-
-function showTyping(){
-  const el = document.createElement('div'); el.className = 'typing-wrap'; el.id = 'typing';
-  el.innerHTML = `<div class="b-avatar">👮</div><div class="typing-dots"><span></span><span></span><span></span></div>`;
-  document.getElementById('chat-body').appendChild(el); scrollBottom();
-}
-function removeTyping(){ document.getElementById('typing')?.remove(); }
-
-function appendIncidentCard(caseNum, crimeInfo){
-  const el = document.createElement('div'); el.className = 'incident-card';
-  const sc = crimeInfo.severity==='CRITICAL'?'sev-critical':'sev-high';
-  el.innerHTML = `<div class="incident-header"><span class="case-num">📁 ${caseNum}</span><span class="sev-badge ${sc}">${crimeInfo.severity}</span></div>
-    <div class="inc-row"><span class="inc-key">범죄 유형</span><span class="inc-val">${crimeInfo.type}</span></div>
-    <div class="inc-row"><span class="inc-key">적용 법조</span><span class="inc-val">${crimeInfo.article||'수사 중'}</span></div>
-    <div class="inc-row"><span class="inc-key">소송 유형</span><span class="inc-val">형사 (국가 vs 피의자)</span></div>`;
-  document.getElementById('chat-body').appendChild(el); scrollBottom();
-  // update PDV panel
-  document.getElementById('pdv-case').textContent = caseNum;
-  document.getElementById('pdv-dispatch').textContent = 'pending';
-}
-
-function appendDispatchCard(result){
-  const el = document.createElement('div'); el.className = 'dispatch-card';
-  const orders = result.dispatchOrders || [];
-  const avCount = (result.vehicleOrders||[]).filter(v=>v.autonomous).length;
-  el.innerHTML = `<div class="dispatch-title">🚔 출동 지시 — 요원 ${orders.length}명</div>
-    ${orders.map(o=>`<div class="agent-row"><span>👮 ${o.agentName} ${o.rank} — ${o.role}</span><span style="margin-left:auto;color:var(--green-dk);font-weight:700">~${o.eta}분</span></div>`).join('')}
-    ${avCount?`<div class="av-note">🤖 자율주행 차량 ${avCount}대 자동 출동 명령 전송</div>`:''}`;
-  document.getElementById('chat-body').appendChild(el); scrollBottom();
-  document.getElementById('pdv-dispatch').textContent = 'true';
-  document.getElementById('pdv-dispatch').style.color = 'var(--green-dk)';
-}
-
-// ── Report handler ────────────────────────────────────────────
-async function handleReport(text){
-  const crimeInfo = RiskEngine.classifyCrime(text);
-  if(crimeInfo.isCriminal && !_activeCaseNum){
-    _activeCaseNum = RiskEngine.generateCaseNumber();
-    _activeCrimeInfo = crimeInfo;
-    appendIncidentCard(_activeCaseNum, crimeInfo);
-    appendAI(`사건번호 **${_activeCaseNum}** 발급됐습니다.\n\n**형사 사건** 접수 완료 — ${crimeInfo.article}\n\n지금 안전하신가요?`, crimeInfo.severity);
-    if(['CRITICAL','HIGH'].includes(crimeInfo.severity) && _userLocation){
-      try{
-        const result = await DispatchEngine.dispatch({
-          id:_activeCaseNum, type:crimeInfo.type, severity:crimeInfo.severity,
-          lat:_userLocation.lat, lng:_userLocation.lng,
-          address:`사용자 위치 (${_userLocation.lat.toFixed(4)}, ${_userLocation.lng.toFixed(4)})`,
-          requiredSpecialties:[], requiredVehicles:1,
-        });
-        appendDispatchCard(result);
-        appendAI(`경찰관이 약 **${result.dispatchOrders[0]?.eta||'?'}분** 후 도착합니다. 계속 상황을 알려주세요.`, crimeInfo.severity);
-      }catch(e){ console.warn('[Dispatch]', e.message); }
-    }
-    return;
-  }
-  if(_activeCaseNum && (text.includes('소송')||text.includes('고소')||text.includes('기소'))){
-    appendAI('소송 패키지 생성 중…', 'LOW', 'system-msg');
-    try{
-      const { html } = await LawsuitEngine.create({
-        caseNumber:_activeCaseNum, crimeInfo:_activeCrimeInfo, chatHistory:_chatHistory,
-        victimInfo:{name:_user?.name||'피해자', ipv6:_user?.ipv6},
-      });
-      const el = document.createElement('div'); el.innerHTML = html;
-      document.getElementById('chat-body').appendChild(el); scrollBottom();
-    }catch(e){ appendAI('소송 패키지 생성 오류. 다시 시도해 주세요.','LOW'); }
-    return;
-  }
-}
-
-// ── AI call ───────────────────────────────────────────────────
-async function loadSystemPrompt(){
-  if(_systemPrompt) return _systemPrompt;
-  try{ _systemPrompt = await(await fetch('/prompts/system_prompt.txt')).text(); }
-  catch{ _systemPrompt = `당신은 K-Police AI 경찰관입니다. 24시간 보디가드입니다. 간결하게 답변하세요.`; }
-  return _systemPrompt;
-}
-
-async function callAI(text){
-  const sys = await loadSystemPrompt();
-  const ctx = [`[모드:${_currentMode}]`,_activeCaseNum?`[사건번호:${_activeCaseNum}]`:'',`[시각:${new Date().toLocaleTimeString('ko-KR')}]`].filter(Boolean).join(' ');
-  _chatHistory.push({role:'user', content:`${ctx}\n${text}`});
-  const PROXY = (typeof KPOLICE_CONFIG !== 'undefined' ? KPOLICE_CONFIG.proxyUrl : 'https://gopang-proxy.tensor-city.workers.dev');
-  const MODEL = (typeof KPOLICE_CONFIG !== 'undefined' ? KPOLICE_CONFIG.model : 'deepseek-chat');
-  const res = await fetch(`${PROXY}/deepseek`, {
-    method:'POST', headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({model:MODEL, max_tokens:512, temperature:0.7,
-      messages:[{role:'system',content:sys},..._chatHistory]}),
-  });
-  if(!res.ok) throw new Error(`HTTP ${res.status}`);
-  const data = await res.json();
-  const reply = data.choices?.[0]?.message?.content || '(응답 없음)';
-  _chatHistory.push({role:'assistant', content:reply});
-  return reply;
-}
-
-// ── Send ──────────────────────────────────────────────────────
-async function sendMessage(text){
-  if(!text.trim()) return;
-  document.getElementById('chips').style.opacity = '.5';
-  appendUser(text);
-  _sessionMsgCnt++;
-  document.getElementById('msg-input').value = '';
-  document.getElementById('msg-input').style.height = 'auto';
-  document.getElementById('send-btn').disabled = true;
-
-  const {level} = (typeof RiskEngine !== 'undefined') ? RiskEngine.analyzeContext({text, hour:new Date().getHours()}) : {level:'LOW'};
-  if(['HIGH','CRITICAL'].includes(level)){ _currentRisk = level; updateDangerBanner(level); }
-  if(_currentMode === 'report') await handleReport(text);
-
-  showTyping();
-  try{
-    const reply = await callAI(text);
-    removeTyping(); appendAI(reply, _currentRisk);
-  }catch(e){ removeTyping(); appendAI('⚠️ 오류가 발생했습니다.\n('+e.message+')', 'LOW'); }
-  document.getElementById('send-btn').disabled = false;
-  document.getElementById('chips').style.opacity = '1';
-}
-
-// ── Input events ──────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
-  const inp = document.getElementById('msg-input');
-  const btn = document.getElementById('send-btn');
-  inp.addEventListener('input', () => {
-    inp.style.height = 'auto';
-    inp.style.height = Math.min(inp.scrollHeight, 80) + 'px';
-    btn.disabled = !inp.value.trim();
-  });
-  inp.addEventListener('keydown', e => {
-    if(e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); if(!btn.disabled) sendMessage(inp.value.trim()); }
-  });
-  btn.addEventListener('click', () => sendMessage(inp.value.trim()));
-
-  // init closed panels
-  document.querySelectorAll('.info-panel:not(.open) .info-panel-body, .info-panel:not(.open) .feature-list, .info-panel:not(.open) .user-types-inner').forEach(el => el.style.display = 'none');
-});
-
-// ── Init / Auth ───────────────────────────────────────────────
-if(typeof DispatchEngine !== 'undefined') DispatchEngine.loadResources();
-
+/* ── Gopang SSO 콜백 ── */
 const PROXY_BASE = 'https://gopang-proxy.tensor-city.workers.dev';
 
 window._onGopangAuth = async function(user) {
-  _user = user;
-  document.getElementById('auth-loading').style.display = 'none';
-  document.getElementById('nav-badge').textContent = user?.level || 'L0';
-  document.getElementById('chat-badge').textContent = user?.level || 'L0';
-
-  const guid = user?.ipv6 || user?.guid || null;
-  if(!guid){ console.log('[POLICE] 게스트 접속'); return; }
-  console.log('[POLICE] 인증 완료:', guid.slice(0,16)+'…', '레벨:', user.level);
-
-  const hour = new Date().getHours();
-  const greet = hour<12?'좋은 아침입니다':hour<18?'안녕하세요':'좋은 저녁입니다';
-  const isNight = hour>=22||hour<6;
-  appendAI(`${greet}! 저는 K-Police AI 경찰관입니다. 👮\n\n${isNight?'🌙 **야간 안전 모드** — 외출 중이시면 목적지와 동행 여부를 알려주세요.':'**어떤 도움이 필요하신가요?**\n범죄 예방, 신고 접수, 소송 안내 모두 도와드립니다.\n\n🚔 상단 **[상황실]** 버튼에서 출동 현황을 확인하세요.'}`, 'LOW');
-
-  const clean = new URL(location.href);
-  ['gwp','gwp_token','ctx','origin'].forEach(k=>clean.searchParams.delete(k));
-  history.replaceState({},'',clean.toString());
-
-  await sendPolicePDV(guid, user);
+  if (user && user.guid) {
+    document.querySelectorAll('a[href="webapp.html"]').forEach(function(btn) {
+      if (!btn.querySelector('.auth-dot')) {
+        var dot = document.createElement('span');
+        dot.className = 'auth-dot';
+        dot.style.cssText = 'display:inline-block;width:7px;height:7px;border-radius:50%;background:#3ECF8E;margin-left:4px;vertical-align:middle;';
+        btn.appendChild(dot);
+      }
+    });
+    const guid = user.ipv6 || user.guid;
+    if (guid) await sendPolicePDV(guid, user);
+  }
 };
 
-async function sendPolicePDV(ipv6, user, reportOverride=null){
-  try{
+async function sendPolicePDV(ipv6, user) {
+  try {
     const now = new Date().toISOString();
-    const report = reportOverride || {
-      svc:  'kpolice',
-      type: 'event',
-      who:  { ipv6, role:'user', level:user?.level||'L0', recipients:['gopang-pdv'] },
-      when: { period_start:now, period_end:now },
-      where:{ svc_url:'https://police.gopang.net/desktop.html' },
-      what: { summary:'K-Police 접속 — 치안 서비스 이용' },
-      how:  { method:'고팡 SSO 자동 인증 (경로: '+(user?.via||'session')+')' },
-      why:  { goal:'치안 서비스 접속 및 이용' },
-    };
-    const res = await fetch(PROXY_BASE+'/pdv/report', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({report}),
+    const res = await fetch(PROXY_BASE + '/pdv/report', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ report: {
+        svc: 'kpolice', type: 'event',
+        who:   { ipv6, role: 'user', level: user?.level || 'L0', recipients: ['gopang-pdv'] },
+        when:  { period_start: now, period_end: now },
+        where: { svc_url: 'https://police.gopang.net/desktop.html' },
+        what:  { summary: 'K-Police 데스크탑 접속 — 서비스 소개 열람' },
+        how:   { method: '고팡 SSO 자동 인증 (경로: ' + (user?.via || 'session') + ')' },
+        why:   { goal: 'K-Police 서비스 이해 및 이용 검토' },
+      }})
     });
-    if(!res.ok){ const t=await res.text(); console.warn('[POLICE PDV] HTTP', res.status, t); return; }
     const data = await res.json();
     console.log('[POLICE PDV]', data.pdv_entry, data.message);
-    return data.pdv_entry;
-  }catch(e){ console.warn('[POLICE PDV] 전송 실패:', e.message); }
+  } catch(e) {
+    console.warn('[POLICE PDV] 전송 실패:', e.message);
+  }
 }
+
+/* ── Sidebar 스크롤 활성 추적 ── */
+(function() {
+  document.body.classList.add('has-sidebar');
+  var sections = ['overview','features','crimes','pdv','arch'];
+  var items = {};
+  sections.forEach(function(id) {
+    var el = document.querySelector('.sb-item[href="#' + id + '"]');
+    if (el) items[id] = el;
+  });
+  var homeItem = document.querySelector('.sb-item[href="#overview"]');
+  function onScroll() {
+    var scrollY = window.scrollY + 80;
+    var active = null;
+    sections.forEach(function(id) {
+      var sec = document.getElementById(id);
+      if (sec && sec.offsetTop <= scrollY) active = id;
+    });
+    document.querySelectorAll('.sb-item.active').forEach(function(el) { el.classList.remove('active'); });
+    if (active && items[active]) items[active].classList.add('active');
+    else if (homeItem) homeItem.classList.add('active');
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+})();
+
+/* ── AI 상담 모달 ── */
+let GDC_SYSTEM_PROMPT = '';
+(async function() {
+  try {
+    const res = await fetch('/prompts/system_prompt.txt');
+    if (res.ok) GDC_SYSTEM_PROMPT = await res.text();
+  } catch(e) {}
+  if (!GDC_SYSTEM_PROMPT) GDC_SYSTEM_PROMPT = '당신은 K-Police AI 경찰관입니다. 24시간 보디가드입니다. 간결하게 답변하세요.';
+})();
+
+const chatHistory = [];
+
+function openChat() { document.getElementById('chatOverlay').classList.add('open'); document.getElementById('chatInput').focus(); }
+function closeChat() { document.getElementById('chatOverlay').classList.remove('open'); }
+document.getElementById('chatOverlay').addEventListener('click', function(e) { if (e.target === this) closeChat(); });
+
+function appendMsg(role, text) {
+  const box = document.getElementById('chatMessages');
+  const div = document.createElement('div');
+  div.className = 'chat-msg ' + (role === 'user' ? 'user' : 'ai');
+  div.textContent = text;
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+  return div;
+}
+
+async function sendChat() {
+  const input = document.getElementById('chatInput');
+  const btn = document.getElementById('chatSendBtn');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = ''; input.style.height = ''; btn.disabled = true;
+  appendMsg('user', text);
+  chatHistory.push({ role: 'user', content: text });
+  const typing = appendMsg('ai', '…');
+  typing.classList.add('typing');
+  try {
+    const res = await fetch(PROXY_BASE + '/deepseek', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'deepseek-v4-pro',
+        system: GDC_SYSTEM_PROMPT,
+        messages: chatHistory.slice(-12),
+        max_tokens: 600, temperature: 0.7,
+      })
+    });
+    const data = await res.json();
+    const reply = data?.choices?.[0]?.message?.content || '죄송합니다, 응답을 받지 못했습니다.';
+    typing.classList.remove('typing');
+    typing.textContent = reply;
+    chatHistory.push({ role: 'assistant', content: reply });
+  } catch(err) {
+    typing.classList.remove('typing');
+    typing.textContent = '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.';
+  } finally {
+    btn.disabled = false; input.focus();
+  }
+}
+
+document.getElementById('chatInput').addEventListener('input', function() {
+  this.style.height = '';
+  this.style.height = Math.min(this.scrollHeight, 100) + 'px';
+});
 </script>
+
 </body>
 </html>
