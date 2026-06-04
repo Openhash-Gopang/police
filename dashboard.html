@@ -3,710 +3,1256 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>K-Police 상황실 — 대시보드</title>
+<title>K-Police 경찰청 상황실</title>
 <link rel="icon" href="data:,">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500&display=swap" rel="stylesheet">
+<script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=YOUR_KAKAO_JS_KEY&libraries=services,clusterer,drawing"></script>
 <style>
 :root{
   --bg:#f8f9fa;--sur:#fff;
-  --bd:rgba(0,0,0,.1);--bd2:rgba(0,0,0,.18);
+  --bd:rgba(0,0,0,.09);--bd2:rgba(0,0,0,.16);
   --t1:#1c1c1e;--t2:#4a4a55;--t3:#9898a6;
-  --brand:#1d4ed8;--brand-bg:rgba(29,78,216,.07);--brand-bd:rgba(29,78,216,.22);
-  --red:#dc2626;--red-bg:rgba(220,38,38,.08);--red-bd:rgba(220,38,38,.22);
-  --orange:#ea580c;--orange-bg:rgba(234,88,12,.08);
-  --green:#16a34a;--green-bg:rgba(22,163,74,.08);
+  --brand:#1d4ed8;--brand-bg:rgba(29,78,216,.06);--brand-bd:rgba(29,78,216,.2);
+  --red:#dc2626;--red-bg:rgba(220,38,38,.06);--red-bd:rgba(220,38,38,.2);
+  --orange:#ea580c;--orange-bg:rgba(234,88,12,.06);
+  --green:#16a34a;--green-bg:rgba(22,163,74,.06);--green-bd:rgba(22,163,74,.2);
   --font:'Noto Sans KR',-apple-system,sans-serif;
-  --r:6px;--r2:10px;
-  --sb-w-collapsed:48px;--sb-w-expanded:220px;
-  --sb-brand:#1d4ed8;
-}
-@media(prefers-color-scheme:dark){
-  :root{--bg:#0f0f0f;--sur:#1c1c1e;--bd:rgba(255,255,255,.1);--bd2:rgba(255,255,255,.2);--t1:#f5f5f7;--t2:#a1a1aa;--t3:#52525b}
+  --r:5px;--r2:8px;
+  --sb:48px;--sb-open:220px;
+  --top:44px;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%}
-body{font-family:var(--font);font-size:14px;color:var(--t1);background:var(--bg);-webkit-font-smoothing:antialiased;line-height:1.6;overflow:hidden}
+html,body{height:100%;overflow:hidden}
+body{font-family:var(--font);font-size:13px;color:var(--t1);background:var(--bg);-webkit-font-smoothing:antialiased;line-height:1.5}
 a{text-decoration:none;color:inherit}
+button{font-family:var(--font);cursor:pointer}
 
 /* ── SIDEBAR ── */
-body.has-sidebar{padding-left:var(--sb-w-collapsed)}
 .sidebar{
   position:fixed;top:0;left:0;bottom:0;
-  width:var(--sb-w-collapsed);
-  background:var(--sur);border-right:1px solid rgba(0,0,0,.09);
-  display:flex;flex-direction:column;z-index:200;overflow:hidden;
-  transition:width 220ms cubic-bezier(.4,0,.2,1),box-shadow 220ms cubic-bezier(.4,0,.2,1);
+  width:var(--sb);background:var(--sur);
+  border-right:.5px solid var(--bd);
+  display:flex;flex-direction:column;
+  z-index:300;overflow:hidden;
+  transition:width 200ms cubic-bezier(.4,0,.2,1);
 }
-.sidebar:hover{width:var(--sb-w-expanded);box-shadow:2px 0 20px rgba(0,0,0,.18)}
-.sb-logo{display:flex;align-items:center;gap:10px;padding:0 12px;height:48px;border-bottom:.5px solid rgba(0,0,0,.08);flex-shrink:0;overflow:hidden;white-space:nowrap;text-decoration:none}
-.sb-logo-mark{width:24px;height:24px;background:var(--sb-brand);border-radius:5px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;flex-shrink:0}
-.sb-logo-text{font-size:13px;font-weight:500;color:#1c1c1e;opacity:0;transition:opacity 160ms ease 30ms}
+.sidebar:hover{width:var(--sb-open);box-shadow:4px 0 24px rgba(0,0,0,.08)}
+.sb-logo{
+  display:flex;align-items:center;gap:10px;
+  padding:0 13px;height:var(--top);
+  border-bottom:.5px solid var(--bd);
+  flex-shrink:0;overflow:hidden;white-space:nowrap;
+  text-decoration:none;color:var(--t1);
+}
+.sb-logo-mark{
+  width:22px;height:22px;background:var(--brand);border-radius:4px;
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;flex-shrink:0;
+}
+.sb-logo-text{font-size:13px;font-weight:500;opacity:0;transition:opacity 140ms ease 20ms;white-space:nowrap}
 .sidebar:hover .sb-logo-text{opacity:1}
-.sb-section-label{padding:14px 14px 3px;font-size:10px;font-weight:500;letter-spacing:.08em;color:#9898a6;text-transform:uppercase;white-space:nowrap;opacity:0;transition:opacity 140ms ease}
-.sidebar:hover .sb-section-label{opacity:1}
-.sb-nav{flex:1;overflow:hidden;padding:6px 6px 0;display:flex;flex-direction:column}
-.sb-item{display:flex;align-items:center;gap:10px;padding:0 8px;height:36px;border-radius:6px;color:#4a4a55;white-space:nowrap;text-decoration:none;cursor:pointer;transition:background 120ms,color 120ms;overflow:hidden;flex-shrink:0}
-.sb-item:hover{background:rgba(0,0,0,.05);color:var(--t1)}
-.sb-item.active{background:rgba(29,78,216,.10);color:#1e3a8a}
-.sb-icon{flex-shrink:0;width:20px;height:20px;display:block}
-.sb-label{font-size:13px;opacity:0;transition:opacity 150ms ease 20ms}
+.sb-nav{flex:1;padding:4px;overflow:hidden;display:flex;flex-direction:column;gap:1px}
+.sb-section{padding:10px 10px 2px;font-size:10px;font-weight:500;letter-spacing:.07em;color:var(--t3);text-transform:uppercase;white-space:nowrap;opacity:0;transition:opacity 130ms ease}
+.sidebar:hover .sb-section{opacity:1}
+.sb-item{
+  display:flex;align-items:center;gap:10px;
+  padding:0 9px;height:34px;border-radius:var(--r);
+  color:var(--t2);white-space:nowrap;overflow:hidden;
+  cursor:pointer;transition:background 100ms,color 100ms;flex-shrink:0;
+}
+.sb-item:hover{background:rgba(0,0,0,.04);color:var(--t1)}
+.sb-item.active{background:var(--brand-bg);color:var(--brand)}
+.sb-icon{flex-shrink:0;width:18px;height:18px;display:block;opacity:.7}
+.sb-item.active .sb-icon,.sb-item:hover .sb-icon{opacity:1}
+.sb-label{font-size:13px;opacity:0;transition:opacity 140ms ease 20ms;white-space:nowrap}
 .sidebar:hover .sb-label{opacity:1}
-.sb-badge{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:16px;border-radius:8px;background:rgba(220,38,38,.15);color:var(--red);font-size:10px;font-weight:600;padding:0 5px;margin-left:auto;opacity:0;transition:opacity 150ms ease;flex-shrink:0}
-.sidebar:hover .sb-badge{opacity:1}
-.sb-sep{height:.5px;background:rgba(0,0,0,.08);margin:6px 0;flex-shrink:0}
-.sb-bottom{padding:6px 6px 12px;border-top:.5px solid rgba(0,0,0,.08);display:flex;flex-direction:column;flex-shrink:0}
+.sb-sep{height:.5px;background:var(--bd);margin:4px 0;flex-shrink:0}
+.sb-bottom{padding:4px;border-top:.5px solid var(--bd);flex-shrink:0;display:flex;flex-direction:column;gap:1px}
 
 /* ── TOPBAR ── */
 .topbar{
-  position:fixed;top:0;left:var(--sb-w-collapsed);right:0;height:48px;
+  position:fixed;top:0;left:var(--sb);right:0;height:var(--top);
   background:var(--sur);border-bottom:.5px solid var(--bd);
-  display:flex;align-items:center;padding:0 20px;gap:12px;
-  z-index:100;
+  display:flex;align-items:center;padding:0 16px;gap:10px;z-index:200;
 }
-.topbar-title{font-size:14px;font-weight:500;color:var(--t1);display:flex;align-items:center;gap:8px}
-.topbar-badge{display:inline-flex;align-items:center;gap:5px;border:.5px solid var(--red-bd);background:var(--red-bg);border-radius:20px;padding:3px 10px;font-size:11px;color:var(--red)}
-.topbar-badge.green{border-color:rgba(22,163,74,.25);background:var(--green-bg);color:var(--green)}
-.pulse-red{width:6px;height:6px;border-radius:50%;background:var(--red);animation:pulse 1.5s infinite}
-.pulse-green{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
+.topbar-title{font-size:13px;font-weight:500;color:var(--t1);display:flex;align-items:center;gap:8px}
+.topbar-chip{
+  display:inline-flex;align-items:center;gap:4px;
+  border:.5px solid var(--bd2);border-radius:3px;
+  padding:2px 7px;font-size:11px;color:var(--t2);
+}
+.topbar-chip.red{border-color:var(--red-bd);background:var(--red-bg);color:var(--red)}
+.topbar-chip.green{border-color:var(--green-bd);background:var(--green-bg);color:var(--green)}
+.pulse{width:5px;height:5px;border-radius:50%;flex-shrink:0;animation:pulse 2s infinite}
+.pulse.red{background:var(--red)}
+.pulse.green{background:var(--green)}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-.topbar-right{margin-left:auto;display:flex;align-items:center;gap:8px}
-.btn{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:var(--r);font-size:13px;font-weight:500;font-family:var(--font);cursor:pointer;border:.5px solid var(--bd2);background:var(--sur);color:var(--t1);transition:all .12s;text-decoration:none}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:6px}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:var(--r);font-size:12px;font-weight:500;border:.5px solid var(--bd2);background:var(--sur);color:var(--t1);cursor:pointer;transition:all .1s;font-family:var(--font)}
 .btn:hover{background:var(--bg)}
-.btn-red{background:var(--red);border-color:var(--red);color:#fff}
-.btn-red:hover{background:#b91c1c}
-.level-chip{padding:3px 9px;background:var(--bg);border:.5px solid var(--bd);border-radius:4px;font-size:11px;font-weight:500;color:var(--t3)}
-#clock{font-size:13px;font-family:monospace;color:var(--t2);letter-spacing:.05em}
+.btn.red{background:var(--red);border-color:var(--red);color:#fff}
+.btn.red:hover{background:#b91c1c}
+#clock{font-size:12px;font-family:monospace;color:var(--t3);letter-spacing:.04em}
 
-/* ── MAIN SHELL ── */
+/* ── MAIN ── */
 .main{
-  position:fixed;top:48px;left:var(--sb-w-collapsed);right:0;bottom:0;
+  position:fixed;top:var(--top);left:var(--sb);right:0;bottom:0;
   display:flex;flex-direction:column;overflow:hidden;
 }
 
+/* ── VIEW SYSTEM ── */
+.view{display:none;flex-direction:column;flex:1;overflow:hidden}
+.view.active{display:flex}
+
 /* ── STAT BAR ── */
 .stat-bar{
-  display:grid;grid-template-columns:repeat(6,1fr);
-  border-bottom:.5px solid var(--bd);background:var(--sur);flex-shrink:0;
+  display:grid;border-bottom:.5px solid var(--bd);
+  background:var(--sur);flex-shrink:0;
 }
-.stat-cell{padding:12px 16px;border-right:.5px solid var(--bd)}
+.stat-cell{padding:10px 16px;border-right:.5px solid var(--bd)}
 .stat-cell:last-child{border-right:none}
-.stat-label{font-size:11px;color:var(--t3);margin-bottom:4px}
-.stat-val{font-size:20px;font-weight:500;color:var(--t1);line-height:1}
+.stat-lbl{font-size:10px;color:var(--t3);margin-bottom:3px;letter-spacing:.03em;text-transform:uppercase}
+.stat-val{font-size:20px;font-weight:500;color:var(--t1);line-height:1;font-variant-numeric:tabular-nums}
 .stat-val.red{color:var(--red)}
 .stat-val.orange{color:var(--orange)}
 .stat-val.green{color:var(--green)}
 .stat-val.blue{color:var(--brand)}
-.stat-delta{font-size:11px;color:var(--t3);margin-top:2px}
+.stat-sub{font-size:10px;color:var(--t3);margin-top:2px}
 
-/* ── CONTENT GRID ── */
-.content{flex:1;display:grid;grid-template-columns:1fr 320px;overflow:hidden}
+/* ── PANELS ── */
+.panel{background:var(--sur);border:.5px solid var(--bd);border-radius:var(--r2);overflow:hidden}
+.panel-hd{
+  padding:9px 14px;border-bottom:.5px solid var(--bd);
+  font-size:12px;font-weight:500;color:var(--t1);
+  display:flex;align-items:center;gap:6px;flex-shrink:0;
+}
+.panel-hd svg{color:var(--t3)}
+.panel-hd-r{margin-left:auto;font-size:11px;color:var(--t3)}
 
-/* ── LEFT — MAP + INCIDENTS ── */
-.left-col{display:flex;flex-direction:column;overflow:hidden;border-right:.5px solid var(--bd)}
-.map-area{flex:1;position:relative;background:#f0f4f8;overflow:hidden}
-#map-canvas{width:100%;height:100%;display:block}
-.map-legend{position:absolute;bottom:12px;left:12px;background:rgba(255,255,255,.92);border:.5px solid var(--bd);border-radius:8px;padding:10px 14px;font-size:11px;display:flex;flex-direction:column;gap:4px}
-.legend-row{display:flex;align-items:center;gap:6px;color:var(--t2)}
-.legend-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-.map-overlay-info{position:absolute;top:12px;left:12px;background:rgba(255,255,255,.92);border:.5px solid var(--bd);border-radius:8px;padding:8px 14px;font-size:12px;color:var(--t2)}
-
-/* ── INCIDENT TABLE ── */
-.incident-panel{flex-shrink:0;max-height:240px;display:flex;flex-direction:column;border-top:.5px solid var(--bd)}
-.panel-hd{padding:10px 16px;border-bottom:.5px solid var(--bd);font-size:13px;font-weight:500;color:var(--t1);display:flex;align-items:center;gap:8px;flex-shrink:0}
-.panel-hd-right{margin-left:auto;font-size:11px;color:var(--t3)}
-.inc-table-wrap{overflow-y:auto;flex:1}
-table.inc-table{width:100%;border-collapse:collapse;font-size:12px}
-table.inc-table th{padding:6px 12px;text-align:left;font-size:11px;font-weight:500;color:var(--t3);border-bottom:.5px solid var(--bd);background:var(--bg);position:sticky;top:0}
-table.inc-table td{padding:8px 12px;border-bottom:.5px solid var(--bd);color:var(--t2);vertical-align:middle}
-table.inc-table tr:last-child td{border-bottom:none}
-table.inc-table tr:hover td{background:var(--bg)}
-.sev-chip{display:inline-block;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:600;border:.5px solid}
-.sev-critical{background:var(--red-bg);color:var(--red);border-color:var(--red-bd)}
-.sev-high{background:var(--orange-bg);color:var(--orange);border-color:rgba(234,88,12,.3)}
-.sev-medium{background:rgba(234,179,8,.08);color:#854d0e;border-color:rgba(234,179,8,.3)}
-.sev-low{background:var(--green-bg);color:var(--green);border-color:rgba(22,163,74,.3)}
-.status-chip{display:inline-block;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:500;background:var(--bg);border:.5px solid var(--bd);color:var(--t2)}
-.status-active{background:var(--red-bg);color:var(--red);border-color:var(--red-bd)}
-.status-dispatch{background:var(--brand-bg);color:var(--brand);border-color:var(--brand-bd)}
-.status-resolved{background:var(--green-bg);color:var(--green);border-color:rgba(22,163,74,.3)}
-.act-btn{background:none;border:.5px solid var(--bd);border-radius:4px;padding:3px 8px;font-size:11px;color:var(--t2);cursor:pointer;font-family:var(--font);transition:all .12s}
+/* ── TABLES ── */
+table.dt{width:100%;border-collapse:collapse;font-size:12px}
+table.dt th{padding:6px 12px;text-align:left;font-size:10px;font-weight:500;color:var(--t3);border-bottom:.5px solid var(--bd);background:var(--bg);position:sticky;top:0;letter-spacing:.04em;text-transform:uppercase}
+table.dt td{padding:7px 12px;border-bottom:.5px solid var(--bd);color:var(--t2);vertical-align:middle}
+table.dt tr:last-child td{border-bottom:none}
+table.dt tr:hover td{background:var(--bg)}
+.chip{display:inline-block;padding:1px 6px;border-radius:3px;font-size:10px;font-weight:500;border:.5px solid}
+.chip-red{background:var(--red-bg);color:var(--red);border-color:var(--red-bd)}
+.chip-orange{background:var(--orange-bg);color:var(--orange);border-color:rgba(234,88,12,.25)}
+.chip-blue{background:var(--brand-bg);color:var(--brand);border-color:var(--brand-bd)}
+.chip-green{background:var(--green-bg);color:var(--green);border-color:var(--green-bd)}
+.chip-gray{background:var(--bg);color:var(--t2);border-color:var(--bd2)}
+.act-btn{background:none;border:.5px solid var(--bd2);border-radius:3px;padding:2px 7px;font-size:11px;color:var(--t2);cursor:pointer;font-family:var(--font);transition:all .1s}
 .act-btn:hover{background:var(--brand);border-color:var(--brand);color:#fff}
 .act-btn.approve{background:var(--brand);border-color:var(--brand);color:#fff}
-.act-btn.override{background:var(--red);border-color:var(--red);color:#fff}
 
-/* ── RIGHT COL ── */
-.right-col{display:flex;flex-direction:column;overflow:hidden;background:var(--sur)}
+/* ── GRID LAYOUTS ── */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.g13{display:grid;grid-template-columns:1fr 3fr;gap:12px}
+.g31{display:grid;grid-template-columns:3fr 1fr;gap:12px}
+.scroll-y{overflow-y:auto;flex:1}
+.scroll-y::-webkit-scrollbar{width:4px}
+.scroll-y::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:2px}
 
-/* Agent panel */
-.agent-panel{flex:1;display:flex;flex-direction:column;border-bottom:.5px solid var(--bd);overflow:hidden}
-.agent-list{overflow-y:auto;flex:1}
-.agent-row{display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:.5px solid var(--bd);transition:background .1s}
+/* ── CANVAS CHARTS ── */
+.chart-wrap{position:relative;width:100%}
+canvas{display:block;width:100%!important}
+
+/* ── VIEW 1 LAYOUT ── */
+#v1 .body{flex:1;display:grid;grid-template-columns:1fr 300px;overflow:hidden}
+#v1 .left{display:flex;flex-direction:column;border-right:.5px solid var(--bd);overflow:hidden}
+#v1 .map-area{flex:1;position:relative}
+#v1 .map-area #kakao-map{width:100%;height:100%}
+#v1 .inc-panel{flex-shrink:0;height:220px;display:flex;flex-direction:column;border-top:.5px solid var(--bd)}
+#v1 .right{display:flex;flex-direction:column;overflow:hidden}
+#v1 .feed-panel{flex:1;display:flex;flex-direction:column;overflow:hidden;border-bottom:.5px solid var(--bd)}
+#v1 .agent-panel{flex-shrink:0;height:200px;display:flex;flex-direction:column;overflow:hidden}
+.feed-item{display:flex;align-items:flex-start;gap:8px;padding:7px 12px;border-bottom:.5px solid var(--bd);font-size:11px}
+.feed-item:last-child{border-bottom:none}
+.feed-time{color:var(--t3);white-space:nowrap;font-family:monospace;margin-top:1px;font-size:10px}
+.feed-msg{color:var(--t2);line-height:1.4}
+.agent-row{display:flex;align-items:center;gap:8px;padding:7px 12px;border-bottom:.5px solid var(--bd);font-size:11px}
 .agent-row:last-child{border-bottom:none}
-.agent-row:hover{background:var(--bg)}
-.agent-avatar{width:28px;height:28px;border-radius:6px;background:var(--brand-bg);border:.5px solid var(--brand-bd);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
-.agent-name{font-size:12px;font-weight:500;color:var(--t1)}
-.agent-role{font-size:11px;color:var(--t3)}
-.agent-status{margin-left:auto;text-align:right}
-.agent-eta{font-size:11px;font-weight:500;color:var(--brand)}
-.agent-loc{font-size:10px;color:var(--t3);margin-top:1px}
+.agent-av{width:24px;height:24px;border-radius:4px;background:var(--brand-bg);border:.5px solid var(--brand-bd);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.agent-name{font-weight:500;color:var(--t1);font-size:11px}
+.agent-role{font-size:10px;color:var(--t3)}
+.agent-eta{margin-left:auto;font-size:11px;color:var(--brand);font-weight:500}
 
-/* PDV log panel */
-.pdv-panel{flex-shrink:0;max-height:220px;display:flex;flex-direction:column;overflow:hidden}
-.pdv-list{overflow-y:auto;flex:1;padding:0}
-.pdv-row{display:flex;align-items:flex-start;gap:8px;padding:8px 14px;border-bottom:.5px solid var(--bd);font-size:11px}
-.pdv-row:last-child{border-bottom:none}
-.pdv-time{color:var(--t3);white-space:nowrap;flex-shrink:0;font-family:monospace;margin-top:1px}
-.pdv-entry-id{color:var(--brand);font-family:monospace;font-size:10px;white-space:nowrap;flex-shrink:0}
-.pdv-msg{color:var(--t2);line-height:1.4}
+/* ── VIEW 2 LAYOUT ── */
+#v2 .body{flex:1;padding:14px;overflow-y:auto;display:flex;flex-direction:column;gap:12px}
+#v2 .body::-webkit-scrollbar{width:4px}
+#v2 .body::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:2px}
 
-/* ── NOTIFICATION TOAST ── */
-.toast-wrap{position:fixed;top:60px;right:16px;z-index:500;display:flex;flex-direction:column;gap:6px;pointer-events:none}
-.toast{background:var(--sur);border:.5px solid var(--bd);border-radius:8px;padding:10px 14px;font-size:12px;box-shadow:0 4px 16px rgba(0,0,0,.12);display:flex;align-items:flex-start;gap:8px;max-width:280px;pointer-events:auto;animation:toastIn .2s ease}
-.toast.critical{border-color:var(--red-bd);background:var(--red-bg)}
-.toast.dispatch{border-color:var(--brand-bd);background:var(--brand-bg)}
-@keyframes toastIn{from{opacity:0;transform:translateX(12px)}to{opacity:1;transform:none}}
-.toast-icon{font-size:16px;flex-shrink:0}
-.toast-title{font-weight:500;color:var(--t1);margin-bottom:2px}
-.toast-sub{color:var(--t3)}
+/* ── VIEW 3 LAYOUT ── */
+#v3 .body{flex:1;padding:14px;overflow-y:auto;display:flex;flex-direction:column;gap:12px}
+#v3 .body::-webkit-scrollbar{width:4px}
+#v3 .body::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:2px}
+
+/* ── VIEW 4 LAYOUT ── */
+#v4 .body{flex:1;display:grid;grid-template-columns:1fr 280px;overflow:hidden}
+#v4 .left{padding:14px;overflow-y:auto;display:flex;flex-direction:column;gap:12px}
+#v4 .right{border-left:.5px solid var(--bd);display:flex;flex-direction:column;overflow:hidden}
+#v4 .map-area{flex:1;position:relative}
+#v4 .map-area #kakao-map2{width:100%;height:100%}
+
+/* ── VIEW 5 LAYOUT ── */
+#v5 .body{flex:1;padding:14px;overflow-y:auto;display:flex;flex-direction:column;gap:12px}
+#v5 .body::-webkit-scrollbar{width:4px}
+#v5 .body::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:2px}
+
+/* ── VIEW 6 LAYOUT ── */
+#v6 .body{flex:1;display:grid;grid-template-columns:1fr 320px;overflow:hidden}
+#v6 .left{display:flex;flex-direction:column;border-right:.5px solid var(--bd);overflow:hidden}
+#v6 .map-area3{flex:1;position:relative}
+#v6 .map-area3 #kakao-map3{width:100%;height:100%}
+#v6 .drill-panel{flex-shrink:0;height:200px;display:flex;flex-direction:column;border-top:.5px solid var(--bd);overflow:hidden}
+#v6 .right{padding:12px;overflow-y:auto;display:flex;flex-direction:column;gap:10px}
+.breadcrumb{display:flex;align-items:center;gap:4px;font-size:12px;color:var(--t3);padding:10px 14px;border-bottom:.5px solid var(--bd);flex-shrink:0}
+.breadcrumb span{color:var(--brand);cursor:pointer}
+.breadcrumb span:hover{text-decoration:underline}
+.breadcrumb .sep{color:var(--bd2)}
+
+/* ── HEATMAP TABLE ── */
+.hm-table{border-collapse:collapse;width:100%;font-size:11px}
+.hm-table th{padding:4px 6px;font-size:10px;font-weight:500;color:var(--t3);text-align:center;border:.5px solid var(--bd);background:var(--bg)}
+.hm-table td{padding:3px 6px;text-align:center;border:.5px solid var(--bd);font-size:11px}
+
+/* ── FUNNEL ── */
+.funnel-wrap{display:flex;flex-direction:column;gap:4px;padding:12px}
+.funnel-step{display:flex;align-items:center;gap:10px}
+.funnel-bar-wrap{flex:1;background:var(--bg);border-radius:2px;height:24px;overflow:hidden;border:.5px solid var(--bd)}
+.funnel-bar{height:100%;background:var(--brand);display:flex;align-items:center;padding:0 8px;font-size:11px;color:#fff;font-weight:500;border-radius:2px;transition:width .4s ease}
+.funnel-label{font-size:11px;color:var(--t2);width:80px;flex-shrink:0;text-align:right}
+.funnel-val{font-size:11px;color:var(--t3);width:48px;flex-shrink:0;font-family:monospace}
+
+/* ── TOAST ── */
+.toast-wrap{position:fixed;top:52px;right:12px;z-index:500;display:flex;flex-direction:column;gap:6px;pointer-events:none}
+.toast{background:var(--sur);border:.5px solid var(--bd);border-radius:var(--r2);padding:9px 13px;font-size:12px;box-shadow:0 4px 16px rgba(0,0,0,.1);display:flex;align-items:flex-start;gap:8px;max-width:260px;pointer-events:auto;animation:toastIn .18s ease}
+.toast.red{border-color:var(--red-bd)}
+.toast-title{font-weight:500;color:var(--t1);margin-bottom:1px}
+.toast-sub{color:var(--t3);font-size:11px}
+@keyframes toastIn{from{opacity:0;transform:translateX(10px)}to{opacity:1;transform:none}}
+
+/* ── MAP OVERLAY ── */
+.map-info{position:absolute;top:10px;left:10px;background:rgba(255,255,255,.95);border:.5px solid var(--bd);border-radius:var(--r2);padding:7px 11px;font-size:11px;color:var(--t2);z-index:10;pointer-events:none}
+.map-legend{position:absolute;bottom:10px;left:10px;background:rgba(255,255,255,.95);border:.5px solid var(--bd);border-radius:var(--r2);padding:8px 11px;font-size:10px;display:flex;flex-direction:column;gap:4px;z-index:10}
+.leg-row{display:flex;align-items:center;gap:6px;color:var(--t2)}
+.leg-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
 </style>
 </head>
 <body>
 
-<!-- SIDEBAR -->
-<aside class="sidebar" role="navigation" aria-label="K-Police 상황실 메뉴">
+<!-- ══ SIDEBAR ══ -->
+<aside class="sidebar" id="sidebar">
   <a href="desktop.html" class="sb-logo">
-    <div class="sb-logo-mark">👮</div>
-    <span class="sb-logo-text">K-Police</span>
+    <div class="sb-logo-mark">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    </div>
+    <span class="sb-logo-text">K-Police 상황실</span>
   </a>
+
   <nav class="sb-nav">
-    <div class="sb-section-label">상황실</div>
-    <a href="dashboard.html" class="sb-item active">
-      <svg class="sb-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 4h4a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1v-6a1 1 0 0 1 1 -1"/><path d="M5 16h4a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1v-2a1 1 0 0 1 1 -1"/><path d="M15 12h4a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1v-6a1 1 0 0 1 1 -1"/><path d="M15 4h4a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1v-2a1 1 0 0 1 1 -1"/></svg>
-      <span class="sb-label">대시보드</span>
-    </a>
-    <a href="ops.html" class="sb-item">
-      <svg class="sb-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
-      <span class="sb-label">상황실 (Ops)</span>
-    </a>
+    <div class="sb-section">대시보드</div>
+
+    <div class="sb-item active" onclick="showView('v1')" id="menu-v1">
+      <svg class="sb-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+      <span class="sb-label">실시간 상황</span>
+    </div>
+
+    <div class="sb-item" onclick="showView('v2')" id="menu-v2">
+      <svg class="sb-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      <span class="sb-label">범죄 통계</span>
+    </div>
+
+    <div class="sb-item" onclick="showView('v3')" id="menu-v3">
+      <svg class="sb-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      <span class="sb-label">피의자 분석</span>
+    </div>
+
+    <div class="sb-item" onclick="showView('v4')" id="menu-v4">
+      <svg class="sb-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <span class="sb-label">조치 현황</span>
+    </div>
+
+    <div class="sb-item" onclick="showView('v5')" id="menu-v5">
+      <svg class="sb-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+      <span class="sb-label">법적 절차</span>
+    </div>
+
+    <div class="sb-item" onclick="showView('v6')" id="menu-v6">
+      <svg class="sb-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+      <span class="sb-label">지역 분석</span>
+    </div>
 
     <div class="sb-sep"></div>
+    <div class="sb-section">서비스</div>
 
-    <div class="sb-section-label">필터</div>
-    <a href="#" class="sb-item" onclick="filterBySev('CRITICAL');return false">
-      <svg class="sb-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-      <span class="sb-label" style="color:#dc2626">CRITICAL 사건</span>
-      <span class="sb-badge" id="sb-critical-count">3</span>
-    </a>
-    <a href="#" class="sb-item" onclick="filterBySev('HIGH');return false">
-      <svg class="sb-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ea580c" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-      <span class="sb-label" style="color:#ea580c">HIGH 사건</span>
-    </a>
-    <a href="#" class="sb-item" onclick="filterBySev(null);return false">
-      <svg class="sb-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 6h16M7 12h10M10 18h4"/></svg>
-      <span class="sb-label">전체 사건</span>
-    </a>
-
-    <div class="sb-sep"></div>
-
-    <div class="sb-section-label">서비스</div>
     <a href="desktop.html" class="sb-item">
-      <svg class="sb-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l-2 0l9 -9l9 9l-2 0"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7"/></svg>
+      <svg class="sb-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
       <span class="sb-label">서비스 소개</span>
     </a>
     <a href="webapp.html" class="sb-item">
-      <svg class="sb-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+      <svg class="sb-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
       <span class="sb-label">K-Police 앱</span>
     </a>
   </nav>
+
   <div class="sb-bottom">
     <a href="https://gopang.net" class="sb-item">
-      <svg class="sb-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l14 0"/><path d="M5 12l6 6"/><path d="M5 12l6 -6"/></svg>
-      <span class="sb-label">고팡으로 돌아가기</span>
+      <svg class="sb-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M5 12l6 6"/><path d="M5 12l6-6"/></svg>
+      <span class="sb-label">고팡으로</span>
     </a>
   </div>
 </aside>
 
-<!-- TOPBAR -->
+<!-- ══ TOPBAR ══ -->
 <div class="topbar">
-  <div class="topbar-title">
-    <span>상황실 대시보드</span>
-    <span class="topbar-badge" id="topbar-status"><span class="pulse-red"></span>CRITICAL 3건 활성</span>
-  </div>
+  <div class="topbar-title" id="view-title">실시간 상황</div>
+  <span class="topbar-chip red" id="status-chip"><span class="pulse red"></span>CRITICAL <span id="critical-cnt">3</span>건</span>
   <span id="clock"></span>
   <div class="topbar-right">
-    <span class="level-chip" id="officer-badge">경찰관</span>
-    <button class="btn btn-red" onclick="if(confirm('112 일제 출동을 발령하시겠습니까?'))allDispatch()">전체 출동 발령</button>
-    <a href="desktop.html" class="btn">← 서비스 소개</a>
+    <span class="btn" id="officer-lv">L0 경찰관</span>
+    <button class="btn red" onclick="allDispatch()">전체 출동 발령</button>
   </div>
 </div>
 
-<!-- MAIN -->
+<!-- ══ MAIN ══ -->
 <div class="main">
 
-  <!-- STAT BAR -->
-  <div class="stat-bar">
-    <div class="stat-cell">
-      <div class="stat-label">활성 사건</div>
-      <div class="stat-val red" id="s-active">7</div>
-      <div class="stat-delta">+2 최근 1시간</div>
-    </div>
-    <div class="stat-cell">
-      <div class="stat-label">CRITICAL</div>
-      <div class="stat-val red" id="s-critical">3</div>
-      <div class="stat-delta">즉시 대응 필요</div>
-    </div>
-    <div class="stat-cell">
-      <div class="stat-label">출동 중 요원</div>
-      <div class="stat-val orange" id="s-dispatch">12</div>
-      <div class="stat-delta">AV 차량 4대 포함</div>
-    </div>
-    <div class="stat-cell">
-      <div class="stat-label">대기 요원</div>
-      <div class="stat-val green" id="s-standby">31</div>
-      <div class="stat-delta">즉시 출동 가능</div>
-    </div>
-    <div class="stat-cell">
-      <div class="stat-label">오늘 PDV 기록</div>
-      <div class="stat-val blue" id="s-pdv">248</div>
-      <div class="stat-delta">Supabase 동기화</div>
-    </div>
-    <div class="stat-cell">
-      <div class="stat-label">오늘 처리 완료</div>
-      <div class="stat-val green" id="s-resolved">94</div>
-      <div class="stat-delta">평균 출동 4.2분</div>
-    </div>
+<!-- ════════════════════════════════════
+     VIEW 1 — 실시간 상황
+════════════════════════════════════ -->
+<div class="view active" id="v1">
+  <div class="stat-bar" style="grid-template-columns:repeat(6,1fr)">
+    <div class="stat-cell"><div class="stat-lbl">전국 활성 사건</div><div class="stat-val red" id="v1-active">24</div><div class="stat-sub">+3 최근 1시간</div></div>
+    <div class="stat-cell"><div class="stat-lbl">CRITICAL</div><div class="stat-val red" id="v1-critical">3</div><div class="stat-sub">즉시 대응 필요</div></div>
+    <div class="stat-cell"><div class="stat-lbl">출동 중</div><div class="stat-val orange" id="v1-dispatch">18</div><div class="stat-sub">AV 5대 포함</div></div>
+    <div class="stat-cell"><div class="stat-lbl">대기 요원</div><div class="stat-val green" id="v1-standby">247</div><div class="stat-sub">전국 기준</div></div>
+    <div class="stat-cell"><div class="stat-lbl">오늘 PDV 기록</div><div class="stat-val blue" id="v1-pdv">1,482</div><div class="stat-sub">Supabase 동기화</div></div>
+    <div class="stat-cell"><div class="stat-lbl">오늘 처리 완료</div><div class="stat-val green" id="v1-done">412</div><div class="stat-sub">평균 12.4분</div></div>
   </div>
-
-  <!-- CONTENT GRID -->
-  <div class="content">
-
-    <!-- LEFT COL -->
-    <div class="left-col">
-      <!-- MAP -->
+  <div class="body">
+    <div class="left">
       <div class="map-area">
-        <canvas id="map-canvas"></canvas>
-        <div class="map-overlay-info">실시간 사건·요원 지도 · 제주도 시범 구역</div>
+        <div id="kakao-map"></div>
+        <div class="map-info">전국 실시간 사건 지도 · K-Police v2</div>
         <div class="map-legend">
-          <div class="legend-row"><span class="legend-dot" style="background:#dc2626"></span>CRITICAL 사건</div>
-          <div class="legend-row"><span class="legend-dot" style="background:#ea580c"></span>HIGH 사건</div>
-          <div class="legend-row"><span class="legend-dot" style="background:#1d4ed8"></span>요원 (출동 중)</div>
-          <div class="legend-row"><span class="legend-dot" style="background:#16a34a"></span>요원 (대기)</div>
-          <div class="legend-row"><span class="legend-dot" style="background:#7c3aed"></span>AV 자율주행 차량</div>
+          <div class="leg-row"><span class="leg-dot" style="background:#dc2626"></span>CRITICAL</div>
+          <div class="leg-row"><span class="leg-dot" style="background:#ea580c"></span>HIGH</div>
+          <div class="leg-row"><span class="leg-dot" style="background:#ca8a04"></span>MEDIUM</div>
+          <div class="leg-row"><span class="leg-dot" style="background:#1d4ed8"></span>요원 출동</div>
+          <div class="leg-row"><span class="leg-dot" style="background:#7c3aed"></span>AV 차량</div>
         </div>
       </div>
-
-      <!-- INCIDENT TABLE -->
-      <div class="incident-panel">
+      <div class="inc-panel">
         <div class="panel-hd">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
           사건 목록
-          <span class="panel-hd-right" id="inc-filter-label">전체</span>
+          <div class="panel-hd-r" id="inc-filter-lbl">전국 전체</div>
         </div>
-        <div class="inc-table-wrap">
-          <table class="inc-table">
-            <thead>
-              <tr>
-                <th>사건번호</th>
-                <th>위험도</th>
-                <th>유형</th>
-                <th>위치</th>
-                <th>상태</th>
-                <th>경과</th>
-                <th>조치</th>
-              </tr>
-            </thead>
-            <tbody id="inc-tbody"></tbody>
+        <div class="scroll-y">
+          <table class="dt"><thead><tr><th>사건번호</th><th>위험도</th><th>유형</th><th>위치</th><th>상태</th><th>경과</th><th>조치</th></tr></thead>
+          <tbody id="inc-tbody"></tbody></table>
+        </div>
+      </div>
+    </div>
+    <div class="right">
+      <div class="feed-panel">
+        <div class="panel-hd">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          실시간 신고 피드
+          <div class="panel-hd-r">Live</div>
+        </div>
+        <div class="scroll-y" id="feed-list"></div>
+      </div>
+      <div class="agent-panel">
+        <div class="panel-hd">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+          요원 현황
+          <div class="panel-hd-r">상위 8명</div>
+        </div>
+        <div class="scroll-y" id="agent-list"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════
+     VIEW 2 — 범죄 통계
+════════════════════════════════════ -->
+<div class="view" id="v2">
+  <div class="stat-bar" style="grid-template-columns:repeat(5,1fr)">
+    <div class="stat-cell"><div class="stat-lbl">연간 총 범죄 (2024)</div><div class="stat-val">1,821,047</div><div class="stat-sub">전년 대비 +2.1%</div></div>
+    <div class="stat-cell"><div class="stat-lbl">8대 강력범죄</div><div class="stat-val red">47,284</div><div class="stat-sub">전체의 2.6%</div></div>
+    <div class="stat-cell"><div class="stat-lbl">최다 발생 유형</div><div class="stat-val blue" style="font-size:15px">절도</div><div class="stat-sub">연 474,271건</div></div>
+    <div class="stat-cell"><div class="stat-lbl">최다 발생 시도</div><div class="stat-val blue" style="font-size:15px">경기</div><div class="stat-sub">382,419건</div></div>
+    <div class="stat-cell"><div class="stat-lbl">최다 발생 시간대</div><div class="stat-val">오후 8~10시</div><div class="stat-sub">전체의 11.4%</div></div>
+  </div>
+  <div class="body">
+    <div class="g2">
+      <div class="panel">
+        <div class="panel-hd"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>범죄 유형별 구성비</div>
+        <div style="padding:12px"><div class="chart-wrap"><canvas id="c-donut" height="200"></canvas></div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-hd"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>월별 발생 추세 (2024)</div>
+        <div style="padding:12px"><div class="chart-wrap"><canvas id="c-trend" height="200"></canvas></div></div>
+      </div>
+    </div>
+    <div class="g2">
+      <div class="panel">
+        <div class="panel-hd"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>시도별 범죄 발생 건수</div>
+        <div style="padding:12px"><div class="chart-wrap"><canvas id="c-region" height="220"></canvas></div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-hd"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>발생 시간대 분포 (0~23시)</div>
+        <div style="padding:12px"><div class="chart-wrap"><canvas id="c-hour" height="220"></canvas></div></div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-hd"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>범죄 유형 × 시도 크로스탭 (건수)</div>
+      <div class="scroll-y" style="max-height:200px">
+        <div style="padding:12px;overflow-x:auto" id="crosstab-wrap"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════
+     VIEW 3 — 피의자 분석
+════════════════════════════════════ -->
+<div class="view" id="v3">
+  <div class="stat-bar" style="grid-template-columns:repeat(5,1fr)">
+    <div class="stat-cell"><div class="stat-lbl">총 피의자 수 (2024)</div><div class="stat-val">1,204,318</div><div class="stat-sub">전년 대비 +1.8%</div></div>
+    <div class="stat-cell"><div class="stat-lbl">최다 연령대</div><div class="stat-val blue">40대</div><div class="stat-sub">24.1% (290,241명)</div></div>
+    <div class="stat-cell"><div class="stat-lbl">남성 비율</div><div class="stat-val">82.4%</div><div class="stat-sub">991,555명</div></div>
+    <div class="stat-cell"><div class="stat-lbl">재범률</div><div class="stat-val orange">42.7%</div><div class="stat-sub">514,244명</div></div>
+    <div class="stat-cell"><div class="stat-lbl">청소년 피의자</div><div class="stat-val red">57,821</div><div class="stat-sub">전년 대비 +6.2%</div></div>
+  </div>
+  <div class="body">
+    <div class="g2">
+      <div class="panel">
+        <div class="panel-hd"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>연령대별 피의자 수 (피라미드)</div>
+        <div style="padding:12px"><div class="chart-wrap"><canvas id="c-pyramid" height="220"></canvas></div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-hd"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>연령대 × 범죄유형 히트맵</div>
+        <div style="padding:12px;overflow-x:auto" id="age-heatmap"></div>
+      </div>
+    </div>
+    <div class="g2">
+      <div class="panel">
+        <div class="panel-hd"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>연령대별 재범률 추세 (5개년)</div>
+        <div style="padding:12px"><div class="chart-wrap"><canvas id="c-recid" height="200"></canvas></div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-hd"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/></svg>초범 / 재범 비율</div>
+        <div style="padding:12px"><div class="chart-wrap"><canvas id="c-recid-donut" height="200"></canvas></div></div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-hd"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>고위험 피의자 현황 (익명 처리)</div>
+      <div class="scroll-y" style="max-height:180px">
+        <table class="dt" id="suspect-table">
+          <thead><tr><th>ID</th><th>연령대</th><th>주요 범죄</th><th>재범 횟수</th><th>위험도</th><th>현재 상태</th></tr></thead>
+          <tbody id="suspect-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════
+     VIEW 4 — 조치 현황
+════════════════════════════════════ -->
+<div class="view" id="v4">
+  <div class="stat-bar" style="grid-template-columns:repeat(6,1fr)">
+    <div class="stat-cell"><div class="stat-lbl">전국 경찰관</div><div class="stat-val">128,247</div><div class="stat-sub">인구 10만명당 248명</div></div>
+    <div class="stat-cell"><div class="stat-lbl">출동 차량</div><div class="stat-val blue">24,318</div><div class="stat-sub">AV 312대 포함</div></div>
+    <div class="stat-cell"><div class="stat-lbl">드론 배치</div><div class="stat-val blue">847</div><div class="stat-sub">야간 전용 412대</div></div>
+    <div class="stat-cell"><div class="stat-lbl">평균 출동 시간</div><div class="stat-val green">5.2분</div><div class="stat-sub">도시 3.8 / 농촌 9.1</div></div>
+    <div class="stat-cell"><div class="stat-lbl">현행범 체포율</div><div class="stat-val green">67.4%</div><div class="stat-sub">전년 대비 +2.1%p</div></div>
+    <div class="stat-cell"><div class="stat-lbl">AV 출동 비율</div><div class="stat-val orange">12.8%</div><div class="stat-sub">증가 추세</div></div>
+  </div>
+  <div class="body">
+    <div class="left">
+      <div class="g2">
+        <div class="panel">
+          <div class="panel-hd"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>출동 소요시간 분포 (분)</div>
+          <div style="padding:12px"><div class="chart-wrap"><canvas id="c-eta" height="180"></canvas></div></div>
+        </div>
+        <div class="panel">
+          <div class="panel-hd"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/></svg>처리 결과 분류</div>
+          <div style="padding:12px"><div class="chart-wrap"><canvas id="c-result" height="180"></canvas></div></div>
+        </div>
+      </div>
+      <div class="g2">
+        <div class="panel">
+          <div class="panel-hd"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 4v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>장비 현황</div>
+          <div style="padding:10px;display:flex;flex-direction:column;gap:8px" id="equip-list"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-hd"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>월별 출동 건수 추세</div>
+          <div style="padding:12px"><div class="chart-wrap"><canvas id="c-dispatch-trend" height="180"></canvas></div></div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-hd"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>요원별 성과 (상위 10명)</div>
+        <div class="scroll-y" style="max-height:160px">
+          <table class="dt" id="officer-table">
+            <thead><tr><th>성명</th><th>계급</th><th>소속</th><th>출동 횟수</th><th>평균 처리</th><th>검거율</th><th>평가</th></tr></thead>
+            <tbody id="officer-tbody"></tbody>
           </table>
         </div>
       </div>
     </div>
-
-    <!-- RIGHT COL -->
-    <div class="right-col">
-
-      <!-- AGENT PANEL -->
-      <div class="agent-panel">
-        <div class="panel-hd">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><circle cx="12" cy="7" r="4"/><path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/></svg>
-          요원 현황
-          <span class="panel-hd-right" id="agent-count">43명</span>
-        </div>
-        <div class="agent-list" id="agent-list"></div>
+    <div class="right">
+      <div class="panel-hd" style="padding:10px 14px;border-bottom:.5px solid var(--bd)">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+        요원 배치 지도
       </div>
-
-      <!-- PDV LOG PANEL -->
-      <div class="pdv-panel">
-        <div class="panel-hd">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-          PDV 기록 스트림
-          <span class="panel-hd-right">Supabase 실시간</span>
+      <div class="map-area" style="flex:1;position:relative">
+        <div id="kakao-map2" style="width:100%;height:100%"></div>
+        <div class="map-legend">
+          <div class="leg-row"><span class="leg-dot" style="background:#1d4ed8"></span>출동 중</div>
+          <div class="leg-row"><span class="leg-dot" style="background:#16a34a"></span>대기</div>
+          <div class="leg-row"><span class="leg-dot" style="background:#7c3aed"></span>AV</div>
         </div>
-        <div class="pdv-list" id="pdv-list"></div>
       </div>
-
     </div>
   </div>
 </div>
 
-<!-- TOAST -->
+<!-- ════════════════════════════════════
+     VIEW 5 — 법적 절차
+════════════════════════════════════ -->
+<div class="view" id="v5">
+  <div class="stat-bar" style="grid-template-columns:repeat(5,1fr)">
+    <div class="stat-cell"><div class="stat-lbl">접수 사건 (2024)</div><div class="stat-val">1,821,047</div><div class="stat-sub">전체 신고 기준</div></div>
+    <div class="stat-cell"><div class="stat-lbl">기소율</div><div class="stat-val orange">37.2%</div><div class="stat-sub">677,429건</div></div>
+    <div class="stat-cell"><div class="stat-lbl">약식 처분</div><div class="stat-val blue">29.4%</div><div class="stat-sub">과태료·벌금</div></div>
+    <div class="stat-cell"><div class="stat-lbl">무혐의·불기소</div><div class="stat-val">21.8%</div><div class="stat-sub">397,188건</div></div>
+    <div class="stat-cell"><div class="stat-lbl">평균 처리 기간</div><div class="stat-val red">47일</div><div class="stat-sub">강력범죄 128일</div></div>
+  </div>
+  <div class="body">
+    <div class="g2">
+      <div class="panel">
+        <div class="panel-hd"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 4 12 14.01 9 11.01"/></svg>사건 처리 단계 퍼널</div>
+        <div class="funnel-wrap" id="funnel-wrap"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-hd"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/></svg>처분 유형별 비율</div>
+        <div style="padding:12px"><div class="chart-wrap"><canvas id="c-disposition" height="200"></canvas></div></div>
+      </div>
+    </div>
+    <div class="g2">
+      <div class="panel">
+        <div class="panel-hd"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>월별 기소율 추세 (2024)</div>
+        <div style="padding:12px"><div class="chart-wrap"><canvas id="c-prosecute" height="180"></canvas></div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-hd"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>범죄유형별 평균 처리 기간 (일)</div>
+        <div style="padding:12px"><div class="chart-wrap"><canvas id="c-duration" height="180"></canvas></div></div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-hd"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>진행 중 소송 목록</div>
+      <div class="scroll-y" style="max-height:180px">
+        <table class="dt"><thead><tr><th>사건번호</th><th>유형</th><th>피의자</th><th>단계</th><th>처분</th><th>기일</th><th>담당</th></tr></thead>
+        <tbody id="lawsuit-tbody"></tbody></table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════
+     VIEW 6 — 지역 분석
+════════════════════════════════════ -->
+<div class="view" id="v6">
+  <div class="stat-bar" style="grid-template-columns:repeat(4,1fr)">
+    <div class="stat-cell"><div class="stat-lbl">선택 지역</div><div class="stat-val blue" style="font-size:15px" id="v6-region">전국</div><div class="stat-sub" id="v6-region-sub">17개 광역시도</div></div>
+    <div class="stat-cell"><div class="stat-lbl">해당 범죄 건수</div><div class="stat-val" id="v6-cnt">1,821,047</div><div class="stat-sub" id="v6-rank">전국 합계</div></div>
+    <div class="stat-cell"><div class="stat-lbl">인구 10만명당</div><div class="stat-val orange" id="v6-rate">3,517</div><div class="stat-sub">범죄 발생률</div></div>
+    <div class="stat-cell"><div class="stat-lbl">배치 경찰관</div><div class="stat-val green" id="v6-officers">128,247</div><div class="stat-sub" id="v6-station">관할 파출소 3,226개</div></div>
+  </div>
+  <div class="body">
+    <div class="left">
+      <div class="breadcrumb" id="breadcrumb">
+        <span onclick="drillTo('전국',null)">전국</span>
+      </div>
+      <div class="map-area3">
+        <div id="kakao-map3" style="width:100%;height:100%"></div>
+        <div class="map-info" id="v6-map-info">시도 클릭 시 상세 드릴다운</div>
+        <div class="map-legend">
+          <div style="font-size:10px;color:var(--t3);margin-bottom:4px;font-weight:500">범죄 발생률</div>
+          <div class="leg-row"><span class="leg-dot" style="background:#fee2e2"></span>낮음</div>
+          <div class="leg-row"><span class="leg-dot" style="background:#fca5a5"></span>보통</div>
+          <div class="leg-row"><span class="leg-dot" style="background:#ef4444"></span>높음</div>
+          <div class="leg-row"><span class="leg-dot" style="background:#7f1d1d"></span>매우 높음</div>
+        </div>
+      </div>
+      <div class="drill-panel">
+        <div class="panel-hd">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          월별 추세 (선택 지역)
+        </div>
+        <div style="padding:10px 12px;flex:1"><div class="chart-wrap"><canvas id="c-region-trend" height="120"></canvas></div></div>
+      </div>
+    </div>
+    <div class="right">
+      <div class="panel">
+        <div class="panel-hd"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>하위 지역 순위</div>
+        <div class="scroll-y" style="max-height:200px">
+          <table class="dt"><thead><tr><th>순위</th><th>지역</th><th>건수</th><th>발생률</th></tr></thead>
+          <tbody id="region-rank-tbody"></tbody></table>
+        </div>
+      </div>
+      <div class="panel" style="margin-top:10px">
+        <div class="panel-hd"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/></svg>범죄 유형 구성</div>
+        <div style="padding:10px"><div class="chart-wrap"><canvas id="c-region-type" height="160"></canvas></div></div>
+      </div>
+      <div class="panel" style="margin-top:10px">
+        <div class="panel-hd"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>관할 파출소 현황</div>
+        <div class="scroll-y" style="max-height:150px" id="station-list">
+          <div style="padding:10px;font-size:11px;color:var(--t3)">지도에서 지역을 클릭하세요</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /.main -->
+
 <div class="toast-wrap" id="toast-wrap"></div>
 
-<script type="module" src="https://gopang.net/auth/subsystem-auth.js"></script>
+<!-- ══════════════════════════════════════════════
+     SCRIPTS
+══════════════════════════════════════════════ -->
 <script>
-/* ─────────────────────────────────────────────
-   K-Police 경찰청 상황실 대시보드
-   실제 Supabase·Worker 연동 준비 + 시뮬레이션
-   ───────────────────────────────────────────── */
+'use strict';
 
-document.body.classList.add('has-sidebar');
-
-const PROXY_BASE = 'https://gopang-proxy.tensor-city.workers.dev';
-
-/* ── Auth ── */
-window._onGopangAuth = async function(user) {
-  if (user) {
-    document.getElementById('officer-badge').textContent = (user.level || 'L0') + ' 경찰관';
+/* ── SSO ── */
+const PROXY = 'https://gopang-proxy.tensor-city.workers.dev';
+window._onGopangAuth = async function(u) {
+  if (u) {
+    document.getElementById('officer-lv').textContent = (u.level||'L0') + ' 경찰관';
+    const guid = u.ipv6 || u.guid;
+    if (guid) {
+      try {
+        await fetch(PROXY+'/pdv/report', {method:'POST',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({report:{svc:'kpolice',type:'event',
+            who:{ipv6:guid,role:'user',level:u.level||'L0',recipients:['gopang-pdv']},
+            when:{period_start:new Date().toISOString(),period_end:new Date().toISOString()},
+            where:{svc_url:'https://police.gopang.net/dashboard.html'},
+            what:{summary:'상황실 대시보드 접속'},how:{method:'SSO'},why:{goal:'모니터링'}
+          }})});
+      } catch(e){}
+    }
   }
 };
 
 /* ── Clock ── */
-function updateClock() {
-  document.getElementById('clock').textContent =
-    new Date().toLocaleString('ko-KR', { hour12: false, year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', second:'2-digit' });
-}
-setInterval(updateClock, 1000);
-updateClock();
+(function tick(){ document.getElementById('clock').textContent = new Date().toLocaleString('ko-KR',{hour12:false,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'}); setTimeout(tick,1000); })();
 
-/* ── Incident Data ── */
-var INCIDENTS = [
-  { id:'KP-20260604-0831', sev:'CRITICAL', type:'폭행·협박',    loc:'제주시 연동 123',     status:'active',   elapsed:'00:03', agent:'김민준 경사' },
-  { id:'KP-20260604-0819', sev:'CRITICAL', type:'강도',         loc:'서귀포시 중정로 44',  status:'dispatch', elapsed:'00:14', agent:'박서연 경장' },
-  { id:'KP-20260604-0811', sev:'CRITICAL', type:'가정폭력',     loc:'제주시 삼도2동',      status:'dispatch', elapsed:'00:22', agent:'이준혁 순경' },
-  { id:'KP-20260604-0754', sev:'HIGH',     type:'보이스피싱',   loc:'제주시 아라1동',      status:'dispatch', elapsed:'00:39', agent:'최수아 경사' },
-  { id:'KP-20260604-0748', sev:'HIGH',     type:'스토킹',       loc:'서귀포시 동흥동',     status:'active',   elapsed:'00:45', agent:'정태양 경장' },
-  { id:'KP-20260604-0731', sev:'HIGH',     type:'사이버범죄',   loc:'제주시 노형동',       status:'dispatch', elapsed:'01:02', agent:'한지유 순경' },
-  { id:'KP-20260604-0715', sev:'MEDIUM',   type:'절도',         loc:'제주시 이도2동',      status:'dispatch', elapsed:'01:18', agent:'오민서 경장' },
-  { id:'KP-20260604-0652', sev:'LOW',      type:'교통사고',     loc:'서귀포시 안덕면',     status:'resolved', elapsed:'01:41', agent:'윤채원 경사' },
-  { id:'KP-20260604-0640', sev:'MEDIUM',   type:'불법촬영',     loc:'제주시 삼양동',       status:'resolved', elapsed:'01:53', agent:'임도현 순경' },
-  { id:'KP-20260604-0620', sev:'LOW',      type:'분실신고',     loc:'제주시 한림읍',       status:'resolved', elapsed:'02:13', agent:'강은서 경사' },
+/* ── View Switch ── */
+const VIEW_TITLES = {v1:'실시간 상황',v2:'범죄 통계',v3:'피의자 분석',v4:'조치 현황',v5:'법적 절차',v6:'지역 분석'};
+let currentView = 'v1';
+let chartsInit = {};
+
+function showView(id) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.sb-item[onclick]').forEach(i => i.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.getElementById('menu-'+id).classList.add('active');
+  document.getElementById('view-title').textContent = VIEW_TITLES[id];
+  currentView = id;
+  if (!chartsInit[id]) { chartsInit[id] = true; initCharts(id); }
+  if (id === 'v1' && !window._map1) initMap1();
+  if (id === 'v4' && !window._map2) initMap2();
+  if (id === 'v6' && !window._map3) initMap3();
+}
+
+/* ════════════════════════════
+   DATA — 경찰청 2024 기반 시뮬레이션
+════════════════════════════ */
+const MONTHS = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+const CRIME_TYPES = ['절도','폭행·상해','사기','교통','성범죄','마약','강도','살인·방화','기타'];
+const CRIME_SHORT = ['절도','폭행','사기','교통','성범죄','마약','강도','살인','기타'];
+const REGIONS = ['경기','서울','부산','경남','인천','경북','충남','전남','대구','전북','충북','강원','광주','대전','울산','제주','세종'];
+const REGION_CRIMES = [382419,294821,121847,98234,87124,72841,68923,61847,74821,54123,48921,41234,52841,47823,38921,18241,8234];
+const REGION_POP = [1380,980,337,325,295,259,213,188,240,181,160,154,148,149,114,68,38]; // 만명
+const AGE_GROUPS = ['10대','20대','30대','40대','50대','60대','70대+'];
+const AGE_MALE =  [57821, 189234, 224812, 290241, 248721, 148234, 72341];
+const AGE_FEMALE =[9821,  42341,  51234,  61234,  48921,  31234,  22341];
+
+const CRIME_MONTHLY = [138421,131234,148921,152341,161234,159821,172341,168921,154821,161234,148921,122831];
+const CRIME_MONTHLY_PREV = [132841,128234,141234,148921,155234,152841,164821,161234,147821,154821,142341,118234];
+
+/* ── V1 DATA ── */
+const INCIDENTS = [
+  {id:'KP-20260604-0831',sev:'CRITICAL',type:'폭행·협박',loc:'서울 강남구 역삼동',status:'active',elapsed:'00:03',agent:'김민준 경사'},
+  {id:'KP-20260604-0819',sev:'CRITICAL',type:'강도',loc:'경기 수원시 팔달구',status:'dispatch',elapsed:'00:14',agent:'박서연 경장'},
+  {id:'KP-20260604-0811',sev:'CRITICAL',type:'가정폭력',loc:'부산 해운대구 좌동',status:'dispatch',elapsed:'00:22',agent:'이준혁 순경'},
+  {id:'KP-20260604-0754',sev:'HIGH',type:'보이스피싱',loc:'인천 남동구 구월동',status:'dispatch',elapsed:'00:39',agent:'최수아 경사'},
+  {id:'KP-20260604-0748',sev:'HIGH',type:'스토킹',loc:'대구 달서구 월성동',status:'active',elapsed:'00:45',agent:'정태양 경장'},
+  {id:'KP-20260604-0731',sev:'HIGH',type:'사이버범죄',loc:'광주 북구 운암동',status:'dispatch',elapsed:'01:02',agent:'한지유 순경'},
+  {id:'KP-20260604-0715',sev:'MEDIUM',type:'절도',loc:'대전 유성구 봉명동',status:'dispatch',elapsed:'01:18',agent:'오민서 경장'},
+  {id:'KP-20260604-0652',sev:'LOW',type:'교통사고',loc:'울산 중구 성남동',status:'resolved',elapsed:'01:41',agent:'윤채원 경사'},
 ];
 
-var AGENTS = [
-  { name:'김민준', rank:'경사', role:'형사',       status:'출동',  eta:'~2분',  loc:'제주시 연동' },
-  { name:'박서연', rank:'경장', role:'강력팀',      status:'출동',  eta:'~5분',  loc:'서귀포 중정로' },
-  { name:'이준혁', rank:'순경', role:'가정폭력팀',  status:'출동',  eta:'~8분',  loc:'제주 삼도2동' },
-  { name:'최수아', rank:'경사', role:'사이버팀',    status:'출동',  eta:'~11분', loc:'제주 아라1동' },
-  { name:'정태양', rank:'경장', role:'스토킹전담',  status:'출동',  eta:'~14분', loc:'서귀포 동흥동' },
-  { name:'한지유', rank:'순경', role:'사이버팀',    status:'출동',  eta:'~18분', loc:'제주 노형동' },
-  { name:'오민서', rank:'경장', role:'절도팀',      status:'출동',  eta:'~22분', loc:'제주 이도2동' },
-  { name:'윤채원', rank:'경사', role:'교통',        status:'대기',  eta:'—',     loc:'서귀포 안덕면' },
-  { name:'임도현', rank:'순경', role:'성범죄전담',  status:'대기',  eta:'—',     loc:'제주 삼양동' },
-  { name:'강은서', rank:'경사', role:'생활안전',    status:'대기',  eta:'—',     loc:'제주 한림읍' },
-  { name:'AV-001', rank:'자율', role:'이송차량',    status:'출동',  eta:'~6분',  loc:'제주 연동 (AV)' },
-  { name:'AV-002', rank:'자율', role:'이송차량',    status:'대기',  eta:'—',     loc:'제주 서부 (AV)' },
+const AGENTS_DATA = [
+  {name:'김민준',rank:'경사',role:'형사1팀',status:'출동',eta:'~2분',loc:'서울 강남'},
+  {name:'박서연',rank:'경장',role:'강력팀',status:'출동',eta:'~5분',loc:'경기 수원'},
+  {name:'이준혁',rank:'순경',role:'여성청소년',status:'출동',eta:'~8분',loc:'부산 해운대'},
+  {name:'최수아',rank:'경사',role:'사이버팀',status:'출동',eta:'~11분',loc:'인천 남동'},
+  {name:'정태양',rank:'경장',role:'스토킹전담',status:'출동',eta:'~14분',loc:'대구 달서'},
+  {name:'한지유',rank:'순경',role:'사이버팀',status:'대기',eta:'—',loc:'광주 북구'},
+  {name:'AV-007',rank:'자율',role:'이송차량',status:'출동',eta:'~6분',loc:'서울 강남 (AV)'},
+  {name:'AV-012',rank:'자율',role:'감시드론',status:'대기',eta:'—',loc:'경기 수원 (AV)'},
 ];
 
-var PDV_LOG = [
-  { time:'09:31:07', id:'PDV-0604-0831-A', msg:'KP-20260604-0831 접수 — 폭행 CRITICAL, 출동 명령 전송' },
-  { time:'09:29:43', id:'PDV-0604-0819-B', msg:'KP-20260604-0819 출동 확인 — 박서연 경장 현장 이동 중' },
-  { time:'09:27:18', id:'PDV-0604-0811-C', msg:'KP-20260604-0811 접수 — 가정폭력 CRITICAL, AV-001 출동' },
-  { time:'09:15:52', id:'PDV-0604-0754-D', msg:'KP-20260604-0754 접수 — 보이스피싱 HIGH, 사이버팀 출동' },
-  { time:'09:10:07', id:'PDV-0604-0748-E', msg:'KP-20260604-0748 접수 — 스토킹 HIGH, 전담팀 배정' },
-  { time:'08:52:30', id:'PDV-0604-0731-F', msg:'KP-20260604-0731 접수 — 사이버범죄 HIGH, 수사 개시' },
+/* ── V3 DATA ── */
+const SUSPECTS_DATA = [
+  {id:'SU-2024-00841',age:'40대',crime:'사기·횡령',recid:4,risk:'CRITICAL',status:'수배 중'},
+  {id:'SU-2024-01234',age:'30대',crime:'성폭력',recid:3,risk:'HIGH',status:'보호관찰'},
+  {id:'SU-2024-02841',age:'50대',crime:'마약',recid:5,risk:'HIGH',status:'수감 중'},
+  {id:'SU-2024-03421',age:'20대',crime:'절도',recid:2,risk:'MEDIUM',status:'재판 중'},
+  {id:'SU-2024-04821',age:'60대',crime:'폭행',recid:3,risk:'MEDIUM',status:'불구속'},
+  {id:'SU-2024-05234',age:'10대',crime:'강도',recid:1,risk:'HIGH',status:'소년원'},
 ];
 
-/* ── Filter state ── */
-var currentFilter = null;
+/* ── V4 DATA ── */
+const OFFICERS_DATA = [
+  {name:'강철수',rank:'경위',unit:'서울강남서',dispatch:247,avg:'4.2분',rate:'78%',grade:'우수'},
+  {name:'이영희',rank:'경사',unit:'경기수원서',dispatch:231,avg:'5.1분',rate:'74%',grade:'우수'},
+  {name:'박지성',rank:'경장',unit:'부산해운서',dispatch:198,avg:'6.3분',rate:'71%',grade:'양호'},
+  {name:'김민수',rank:'경사',unit:'인천남동서',dispatch:187,avg:'5.8분',rate:'69%',grade:'양호'},
+  {name:'정수현',rank:'순경',unit:'대구달서서',dispatch:174,avg:'7.2분',rate:'65%',grade:'양호'},
+  {name:'한미래',rank:'경장',unit:'광주북부서',dispatch:162,avg:'6.9분',rate:'63%',grade:'보통'},
+  {name:'오태양',rank:'순경',unit:'대전유성서',dispatch:148,avg:'8.1분',rate:'58%',grade:'보통'},
+  {name:'윤서진',rank:'경사',unit:'울산중부서',dispatch:139,avg:'7.4분',rate:'61%',grade:'보통'},
+];
 
-function filterBySev(sev) {
-  currentFilter = sev;
-  document.getElementById('inc-filter-label').textContent = sev ? sev + ' 필터' : '전체';
-  renderIncidents();
-}
+/* ── V5 DATA ── */
+const LAWSUITS_DATA = [
+  {id:'KP-20260604-0412',type:'강도',suspect:'피의자 A',stage:'재판',disposition:'구공판',date:'2026-06-15',officer:'서울중앙지검 김◯◯'},
+  {id:'KP-20260604-0389',type:'성폭력',suspect:'피의자 B',stage:'수사',disposition:'기소의견',date:'—',officer:'경기남부청 박◯◯'},
+  {id:'KP-20260604-0341',type:'마약',suspect:'피의자 C',stage:'기소',disposition:'약식',date:'2026-06-20',officer:'부산지검 이◯◯'},
+  {id:'KP-20260604-0298',type:'사기',suspect:'피의자 D',stage:'판결',disposition:'징역2년',date:'2026-06-10',officer:'인천지법 최◯◯'},
+  {id:'KP-20260604-0241',type:'폭행',suspect:'피의자 E',stage:'수사',disposition:'불기소',date:'—',officer:'대구지청 정◯◯'},
+  {id:'KP-20260604-0198',type:'절도',suspect:'피의자 F',stage:'기소',disposition:'벌금300만',date:'2026-06-18',officer:'광주지검 한◯◯'},
+];
 
-/* ── Render Incidents ── */
-function sevChip(sev) {
-  var cls = sev === 'CRITICAL' ? 'sev-critical' : sev === 'HIGH' ? 'sev-high' : sev === 'MEDIUM' ? 'sev-medium' : 'sev-low';
-  return '<span class="sev-chip ' + cls + '">' + sev + '</span>';
-}
-function statusChip(s) {
-  var cls = s === 'active' ? 'status-active' : s === 'dispatch' ? 'status-dispatch' : 'status-resolved';
-  var label = s === 'active' ? '신고 접수' : s === 'dispatch' ? '출동 중' : '처리 완료';
-  return '<span class="status-chip ' + cls + '">' + label + '</span>';
-}
-
-function renderIncidents() {
-  var list = currentFilter ? INCIDENTS.filter(function(i){ return i.sev === currentFilter; }) : INCIDENTS;
-  var html = list.map(function(inc) {
-    var actions = inc.status === 'active'
-      ? '<button class="act-btn approve" onclick="approveDispatch(\''+inc.id+'\')">출동 승인</button>'
-      : inc.status === 'dispatch'
-      ? '<button class="act-btn override" onclick="overrideCase(\''+inc.id+'\')">오버라이드</button>'
-      : '<span style="font-size:11px;color:#16a34a">✓ 완료</span>';
-    return '<tr><td style="font-family:monospace;font-size:11px;color:var(--brand)">' + inc.id + '</td>'
-      + '<td>' + sevChip(inc.sev) + '</td>'
-      + '<td style="color:var(--t1)">' + inc.type + '</td>'
-      + '<td>' + inc.loc + '</td>'
-      + '<td>' + statusChip(inc.status) + '</td>'
-      + '<td style="font-family:monospace;color:var(--t3)">' + inc.elapsed + '</td>'
-      + '<td>' + actions + '</td></tr>';
+/* ── RENDER V1 ── */
+function renderV1() {
+  // Incidents
+  const tbody = document.getElementById('inc-tbody');
+  tbody.innerHTML = INCIDENTS.map(inc => {
+    const sc = inc.sev==='CRITICAL'?'chip-red':inc.sev==='HIGH'?'chip-orange':inc.sev==='MEDIUM'?'chip-gray':'chip-green';
+    const ss = inc.status==='active'?'chip-red':inc.status==='dispatch'?'chip-blue':'chip-green';
+    const sl = inc.status==='active'?'신고접수':inc.status==='dispatch'?'출동중':'완료';
+    const act = inc.status==='active'?`<button class="act-btn approve" onclick="toast('dispatch','출동 승인','${inc.id}')">출동 승인</button>`
+              : inc.status==='dispatch'?`<button class="act-btn" onclick="toast('red','오버라이드','${inc.id}')">오버라이드</button>`
+              : `<span style="font-size:10px;color:var(--green)">✓ 완료</span>`;
+    return `<tr><td style="font-family:monospace;font-size:10px;color:var(--brand)">${inc.id}</td>
+      <td><span class="chip ${sc}">${inc.sev}</span></td>
+      <td style="color:var(--t1)">${inc.type}</td><td>${inc.loc}</td>
+      <td><span class="chip ${ss}">${sl}</span></td>
+      <td style="font-family:monospace;color:var(--t3)">${inc.elapsed}</td>
+      <td>${act}</td></tr>`;
   }).join('');
-  document.getElementById('inc-tbody').innerHTML = html;
-}
 
-/* ── Render Agents ── */
-function renderAgents() {
-  var html = AGENTS.map(function(a) {
-    var isAV = a.rank === '자율';
-    var icon = isAV ? '🤖' : '👮';
-    var dispatchCls = a.status === '출동' ? 'color:var(--brand);font-weight:500' : 'color:var(--green);font-weight:500';
-    return '<div class="agent-row">'
-      + '<div class="agent-avatar">' + icon + '</div>'
-      + '<div><div class="agent-name">' + a.name + ' ' + a.rank + '</div>'
-      + '<div class="agent-role">' + a.role + '</div></div>'
-      + '<div class="agent-status">'
-      + '<div class="agent-eta" style="' + dispatchCls + '">' + (a.status === '출동' ? a.eta : '대기') + '</div>'
-      + '<div class="agent-loc">' + a.loc + '</div>'
-      + '</div></div>';
+  // Feed
+  const feed = document.getElementById('feed-list');
+  const feedItems = [
+    {time:'13:04:11',sev:'CRITICAL',msg:'서울 강남 폭행 신고 — 즉시 출동 명령'},
+    {time:'13:02:48',sev:'HIGH',msg:'경기 수원 강도 신고 — 박서연 경장 출동'},
+    {time:'13:01:33',sev:'CRITICAL',msg:'부산 해운대 가정폭력 — AV-007 파견'},
+    {time:'12:58:21',sev:'HIGH',msg:'인천 남동 보이스피싱 — 사이버팀 접수'},
+    {time:'12:55:04',sev:'HIGH',msg:'대구 달서 스토킹 신고 — 전담팀 배정'},
+    {time:'12:52:17',sev:'MEDIUM',msg:'대전 유성 절도 신고 — 순찰차 출동'},
+    {time:'12:49:38',sev:'LOW',msg:'울산 중구 교통사고 — 처리 완료'},
+    {time:'12:46:52',sev:'HIGH',msg:'광주 북구 사이버범죄 — 수사 개시'},
+  ];
+  feed.innerHTML = feedItems.map(f => {
+    const c = f.sev==='CRITICAL'?'var(--red)':f.sev==='HIGH'?'var(--orange)':'var(--t3)';
+    return `<div class="feed-item"><span class="feed-time">${f.time}</span><span style="width:6px;height:6px;border-radius:50%;background:${c};flex-shrink:0;margin-top:4px"></span><span class="feed-msg">${f.msg}</span></div>`;
   }).join('');
-  document.getElementById('agent-list').innerHTML = html;
-}
 
-/* ── Render PDV ── */
-function renderPDV() {
-  var html = PDV_LOG.map(function(p) {
-    return '<div class="pdv-row">'
-      + '<span class="pdv-time">' + p.time + '</span>'
-      + '<span class="pdv-entry-id">' + p.id + '</span>'
-      + '<span class="pdv-msg">' + p.msg + '</span>'
-      + '</div>';
+  // Agents
+  document.getElementById('agent-list').innerHTML = AGENTS_DATA.map(a => {
+    const isAV = a.rank==='자율';
+    const ec = a.status==='출동'?'color:var(--brand)':'color:var(--green)';
+    return `<div class="agent-row">
+      <div class="agent-av" style="${isAV?'background:rgba(124,58,237,.06);border-color:rgba(124,58,237,.2)':''}">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="${isAV?'#7c3aed':'var(--brand)'}" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">${isAV?'<rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/><circle cx="12" cy="16" r="1"/>':'<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>'}</svg>
+      </div>
+      <div><div class="agent-name">${a.name} ${a.rank}</div><div class="agent-role">${a.role}</div></div>
+      <div style="margin-left:auto;text-align:right"><div class="agent-eta" style="${ec}">${a.status==='출동'?a.eta:'대기'}</div><div class="agent-role">${a.loc}</div></div>
+    </div>`;
   }).join('');
-  document.getElementById('pdv-list').innerHTML = html;
 }
 
-/* ── Map Canvas ── */
-var MAP_POINTS = [
-  { x:.38, y:.42, type:'critical', label:'폭행' },
-  { x:.62, y:.71, type:'critical', label:'강도' },
-  { x:.44, y:.38, type:'critical', label:'가폭' },
-  { x:.51, y:.35, type:'high',     label:'피싱' },
-  { x:.68, y:.65, type:'high',     label:'스토킹' },
-  { x:.35, y:.44, type:'high',     label:'사이버' },
-  { x:.55, y:.40, type:'medium',   label:'절도' },
-  { x:.30, y:.50, type:'agent_d',  label:'김경사' },
-  { x:.60, y:.68, type:'agent_d',  label:'박경장' },
-  { x:.42, y:.36, type:'agent_d',  label:'이순경' },
-  { x:.48, y:.33, type:'agent_s',  label:'최경사' },
-  { x:.65, y:.62, type:'agent_s',  label:'정경장' },
-  { x:.33, y:.48, type:'agent_s',  label:'한순경' },
-  { x:.42, y:.39, type:'av',       label:'AV-001' },
-  { x:.25, y:.55, type:'av',       label:'AV-002' },
-];
+/* ── CHART ENGINE ── */
+function hexToRgb(h){const r=parseInt(h.slice(1,3),16),g=parseInt(h.slice(3,5),16),b=parseInt(h.slice(5,7),16);return`${r},${g},${b}`}
 
-function drawMap() {
-  var canvas = document.getElementById('map-canvas');
-  var W = canvas.offsetWidth, H = canvas.offsetHeight;
-  canvas.width = W; canvas.height = H;
-  var ctx = canvas.getContext('2d');
+function drawLineChart(id, labels, datasets, opts={}) {
+  const canvas = document.getElementById(id);
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.offsetWidth || canvas.parentElement.offsetWidth;
+  const H = canvas.height || 180;
+  canvas.width = W * window.devicePixelRatio;
+  canvas.height = H * window.devicePixelRatio;
+  canvas.style.width = W+'px'; canvas.style.height = H+'px';
+  ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
 
-  // Background gradient
-  var grad = ctx.createLinearGradient(0, 0, W, H);
-  grad.addColorStop(0, '#e8eef8');
-  grad.addColorStop(1, '#dde5f0');
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, W, H);
+  const pad = {t:16,r:12,b:32,l:52};
+  const cW = W - pad.l - pad.r;
+  const cH = H - pad.t - pad.b;
+  ctx.clearRect(0,0,W,H);
 
-  // Grid lines
-  ctx.strokeStyle = 'rgba(100,120,180,.1)';
-  ctx.lineWidth = 1;
-  for (var gx = 0; gx < W; gx += 60) { ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, H); ctx.stroke(); }
-  for (var gy = 0; gy < H; gy += 60) { ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(W, gy); ctx.stroke(); }
+  const allVals = datasets.flatMap(d=>d.data);
+  const minV = opts.min !== undefined ? opts.min : Math.min(...allVals) * 0.9;
+  const maxV = Math.max(...allVals) * 1.1;
 
-  // Jeju island outline (simplified)
-  ctx.beginPath();
-  ctx.ellipse(W*.5, H*.52, W*.38, H*.28, 0, 0, Math.PI*2);
-  ctx.fillStyle = 'rgba(180,200,230,.18)';
-  ctx.fill();
-  ctx.strokeStyle = 'rgba(100,140,200,.25)';
-  ctx.lineWidth = 1.5;
-  ctx.stroke();
+  // Grid
+  ctx.strokeStyle = 'rgba(0,0,0,.06)'; ctx.lineWidth = .5;
+  for(let i=0;i<=4;i++){
+    const y = pad.t + (cH/4)*i;
+    ctx.beginPath(); ctx.moveTo(pad.l,y); ctx.lineTo(pad.l+cW,y); ctx.stroke();
+    ctx.fillStyle='rgba(0,0,0,.35)'; ctx.font='9px "Noto Sans KR",sans-serif'; ctx.textAlign='right';
+    const val = maxV - (maxV-minV)/4*i;
+    ctx.fillText(val>=10000?Math.round(val/1000)+'k':Math.round(val), pad.l-4, y+3);
+  }
 
-  // Road lines
-  ctx.strokeStyle = 'rgba(255,255,255,.6)';
-  ctx.lineWidth = 1.5;
-  ctx.setLineDash([]);
-  ctx.beginPath();
-  ctx.moveTo(W*.15, H*.52); ctx.lineTo(W*.85, H*.52); ctx.stroke();
-  ctx.beginPath();
-  ctx.moveTo(W*.5, H*.25); ctx.lineTo(W*.5, H*.75); ctx.stroke();
+  // Labels
+  ctx.fillStyle='rgba(0,0,0,.4)'; ctx.font='9px "Noto Sans KR",sans-serif'; ctx.textAlign='center';
+  labels.forEach((lb,i)=>{ const x=pad.l+cW/(labels.length-1)*i; ctx.fillText(lb,x,H-pad.b+12); });
 
-  var now = Date.now();
-
-  MAP_POINTS.forEach(function(p) {
-    var x = p.x * W, y = p.y * H;
-    var color, r;
-
-    if (p.type === 'critical') {
-      color = '#dc2626'; r = 8;
-      // Pulse ring
-      var pulse = (Math.sin(now / 500) + 1) / 2;
-      ctx.beginPath();
-      ctx.arc(x, y, r + 6 + pulse * 6, 0, Math.PI*2);
-      ctx.strokeStyle = 'rgba(220,38,38,' + (.3 - pulse*.2) + ')';
-      ctx.lineWidth = 2;
-      ctx.stroke();
-    } else if (p.type === 'high') {
-      color = '#ea580c'; r = 6;
-    } else if (p.type === 'medium') {
-      color = '#ca8a04'; r = 5;
-    } else if (p.type === 'agent_d') {
-      color = '#1d4ed8'; r = 5;
-    } else if (p.type === 'agent_s') {
-      color = '#16a34a'; r = 5;
-    } else { // av
-      color = '#7c3aed'; r = 5;
-    }
-
-    ctx.beginPath();
-    ctx.arc(x, y, r, 0, Math.PI*2);
-    ctx.fillStyle = color;
-    ctx.fill();
-    ctx.strokeStyle = '#fff';
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
-
-    // Label
-    ctx.font = '10px "Noto Sans KR", sans-serif';
-    ctx.fillStyle = '#374151';
-    ctx.textAlign = 'center';
-    ctx.fillText(p.label, x, y + r + 12);
+  // Lines
+  datasets.forEach(ds => {
+    const pts = ds.data.map((v,i)=>({x:pad.l+cW/(ds.data.length-1)*i, y:pad.t+cH*(1-(v-minV)/(maxV-minV))}));
+    // Fill
+    ctx.beginPath(); ctx.moveTo(pts[0].x,pad.t+cH);
+    pts.forEach(p=>ctx.lineTo(p.x,p.y)); ctx.lineTo(pts[pts.length-1].x,pad.t+cH); ctx.closePath();
+    ctx.fillStyle=`rgba(${hexToRgb(ds.color)},.07)`;ctx.fill();
+    // Line
+    ctx.beginPath(); pts.forEach((p,i)=>i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y));
+    ctx.strokeStyle=ds.color; ctx.lineWidth=1.5; ctx.setLineDash(ds.dash||[]); ctx.stroke(); ctx.setLineDash([]);
+    // Dots
+    pts.forEach(p=>{ ctx.beginPath(); ctx.arc(p.x,p.y,2.5,0,Math.PI*2); ctx.fillStyle=ds.color; ctx.fill(); ctx.strokeStyle='#fff'; ctx.lineWidth=1; ctx.stroke(); });
   });
 }
 
-var mapAnim;
-function animateMap() {
-  drawMap();
-  mapAnim = requestAnimationFrame(animateMap);
-}
-animateMap();
-window.addEventListener('resize', function() {
-  var c = document.getElementById('map-canvas');
-  c.width = c.offsetWidth; c.height = c.offsetHeight;
-});
+function drawBarChart(id, labels, datasets, opts={}) {
+  const canvas = document.getElementById(id);
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.offsetWidth || canvas.parentElement.offsetWidth;
+  const H = canvas.height || 200;
+  canvas.width = W * window.devicePixelRatio; canvas.height = H * window.devicePixelRatio;
+  canvas.style.width = W+'px'; canvas.style.height = H+'px';
+  ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
 
-/* ── Actions ── */
-function approveDispatch(id) {
-  showToast('dispatch', '출동 승인', id + ' 출동 명령 전송 완료');
-  var inc = INCIDENTS.find(function(i){ return i.id === id; });
-  if (inc) inc.status = 'dispatch';
-  renderIncidents();
-  addPDVLog('PDV-APPROVE', id + ' 출동 승인 — 경찰관 승인');
-}
+  const pad = {t:10,r:12,b:opts.hbar?8:36,l:opts.hbar?90:40};
+  const cW = W-pad.l-pad.r; const cH = H-pad.t-pad.b;
+  ctx.clearRect(0,0,W,H);
 
-function overrideCase(id) {
-  if (!confirm(id + ' 사건을 오버라이드하시겠습니까?')) return;
-  showToast('critical', '오버라이드', id + ' 수동 개입 명령 발령');
-  addPDVLog('PDV-OVERRIDE', id + ' 경찰관 오버라이드 — 수동 지휘 전환');
-}
+  const allVals = datasets.flatMap(d=>d.data||d);
+  const maxV = Math.max(...allVals)*1.12;
 
-function allDispatch() {
-  showToast('critical', '전체 출동 발령', '모든 대기 요원 즉시 출동 명령');
-  addPDVLog('PDV-ALLDISPATCH', '전체 출동 명령 — 경찰청장 권한 발령');
-}
-
-/* ── Toast ── */
-function showToast(type, title, sub) {
-  var wrap = document.getElementById('toast-wrap');
-  var div = document.createElement('div');
-  div.className = 'toast ' + type;
-  div.innerHTML = '<span class="toast-icon">' + (type === 'critical' ? '🚨' : '🚔') + '</span>'
-    + '<div><div class="toast-title">' + title + '</div><div class="toast-sub">' + sub + '</div></div>';
-  wrap.appendChild(div);
-  setTimeout(function() { div.style.opacity = '0'; div.style.transition = 'opacity .3s'; setTimeout(function(){ div.remove(); }, 300); }, 4000);
-}
-
-/* ── PDV ── */
-function addPDVLog(id, msg) {
-  var now = new Date().toLocaleTimeString('ko-KR', { hour12: false });
-  PDV_LOG.unshift({ time: now, id: id, msg: msg });
-  if (PDV_LOG.length > 20) PDV_LOG.pop();
-  renderPDV();
-  var n = parseInt(document.getElementById('s-pdv').textContent);
-  document.getElementById('s-pdv').textContent = n + 1;
-}
-
-/* ── Periodic simulation ── */
-var INC_TYPES = ['보이스피싱','스토킹','가정폭력','사이버범죄','불법촬영','금융사기','폭행·협박','절도·강도'];
-var LOCS = ['제주시 연동','서귀포시 중정로','제주시 노형동','서귀포시 동흥동','제주시 아라1동','제주 한림읍','제주 삼양동'];
-var SEVS = ['CRITICAL','HIGH','HIGH','MEDIUM','LOW'];
-var seqNum = 832;
-
-setInterval(function() {
-  var sev = SEVS[Math.floor(Math.random() * SEVS.length)];
-  var type = INC_TYPES[Math.floor(Math.random() * INC_TYPES.length)];
-  var loc = LOCS[Math.floor(Math.random() * LOCS.length)];
-  var id = 'KP-20260604-0' + seqNum++;
-  var agentNames = ['김민준','박서연','이준혁','최수아','정태양','한지유','오민서'];
-  var ranks = ['경사','경장','순경'];
-  var aname = agentNames[Math.floor(Math.random() * agentNames.length)];
-  var arank = ranks[Math.floor(Math.random() * ranks.length)];
-
-  INCIDENTS.unshift({ id, sev, type, loc, status:'active', elapsed:'00:00', agent: aname + ' ' + arank });
-  if (INCIDENTS.length > 15) INCIDENTS.pop();
-
-  var critical = INCIDENTS.filter(function(i){ return i.sev === 'CRITICAL' && i.status !== 'resolved'; }).length;
-  document.getElementById('s-active').textContent = INCIDENTS.filter(function(i){ return i.status !== 'resolved'; }).length;
-  document.getElementById('s-critical').textContent = critical;
-  document.getElementById('sb-critical-count').textContent = critical;
-  if (critical > 0) {
-    document.getElementById('topbar-status').innerHTML = '<span class="pulse-red"></span>CRITICAL ' + critical + '건 활성';
-    document.getElementById('topbar-status').className = 'topbar-badge';
-  } else {
-    document.getElementById('topbar-status').innerHTML = '<span class="pulse-green"></span>정상 운영';
-    document.getElementById('topbar-status').className = 'topbar-badge green';
-  }
-
-  renderIncidents();
-  addPDVLog('PDV-' + id.slice(-4), id + ' 접수 — ' + type + ' ' + sev);
-  if (sev === 'CRITICAL') showToast('critical', 'CRITICAL 사건 접수', type + ' · ' + loc);
-  else if (sev === 'HIGH') showToast('dispatch', 'HIGH 사건 접수', type + ' · ' + loc);
-
-}, 8000);
-
-/* ── PDV fetch from Supabase (실제 연동) ── */
-async function fetchPDVLog() {
-  try {
-    const res = await fetch(PROXY_BASE + '/pdv/report', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ report: {
-        svc: 'kpolice', type: 'dashboard_open',
-        who: { ipv6: 'dashboard', role: 'user', level: 'L0', recipients: ['gopang-pdv'] },
-        when: { period_start: new Date().toISOString(), period_end: new Date().toISOString() },
-        where: { svc_url: 'https://police.gopang.net/dashboard.html' },
-        what: { summary: '상황실 대시보드 접속' },
-        how: { method: '경찰관 로그인' },
-        why: { goal: '실시간 사건 모니터링' },
-      }})
+  if (opts.hbar) {
+    // Horizontal bar
+    const bH = Math.min(16, cH/labels.length - 4);
+    const gap = (cH - bH*labels.length) / (labels.length+1);
+    labels.forEach((lb,i)=>{
+      const v = (datasets[0].data||datasets[0])[i];
+      const bW = cW*(v/maxV);
+      const y = pad.t + gap*(i+1) + bH*i;
+      ctx.fillStyle=datasets[0].color; ctx.beginPath(); ctx.roundRect(pad.l,y,bW,bH,2); ctx.fill();
+      ctx.fillStyle='rgba(0,0,0,.45)'; ctx.font='9px "Noto Sans KR",sans-serif'; ctx.textAlign='right';
+      ctx.fillText(lb, pad.l-5, y+bH/2+3);
+      ctx.textAlign='left'; ctx.fillStyle='rgba(0,0,0,.35)';
+      ctx.fillText(v>=10000?Math.round(v/1000)+'k':v, pad.l+bW+4, y+bH/2+3);
     });
-    const data = await res.json();
-    if (data.pdv_entry) {
-      addPDVLog(data.pdv_entry, '대시보드 접속 PDV 기록 완료');
+  } else {
+    // Vertical bar
+    const bW = Math.max(4, (cW/labels.length)*0.55);
+    const gap = cW/labels.length;
+    // Grid
+    ctx.strokeStyle='rgba(0,0,0,.06)'; ctx.lineWidth=.5;
+    for(let i=0;i<=4;i++){
+      const y=pad.t+cH/4*i; ctx.beginPath(); ctx.moveTo(pad.l,y); ctx.lineTo(pad.l+cW,y); ctx.stroke();
+      ctx.fillStyle='rgba(0,0,0,.35)'; ctx.font='9px "Noto Sans KR",sans-serif'; ctx.textAlign='right';
+      const val=maxV*(1-i/4); ctx.fillText(val>=10000?Math.round(val/1000)+'k':Math.round(val),pad.l-3,y+3);
     }
-  } catch(e) {
-    console.warn('[DASHBOARD PDV]', e.message);
+    datasets.forEach((ds,di)=>{
+      const data=ds.data||ds;
+      data.forEach((v,i)=>{
+        const x=pad.l+gap*i+gap/2-(datasets.length*bW+(datasets.length-1)*2)/2+di*(bW+2);
+        const bH2=cH*(v/maxV);
+        ctx.fillStyle=ds.color||'#1d4ed8'; ctx.beginPath(); ctx.roundRect(x,pad.t+cH-bH2,bW,bH2,2); ctx.fill();
+      });
+    });
+    labels.forEach((lb,i)=>{
+      const x=pad.l+gap*i+gap/2;
+      ctx.fillStyle='rgba(0,0,0,.4)'; ctx.font='9px "Noto Sans KR",sans-serif'; ctx.textAlign='center';
+      ctx.fillText(lb,x,H-pad.b+11);
+    });
   }
 }
 
-/* ── Init ── */
-renderIncidents();
-renderAgents();
-renderPDV();
-fetchPDVLog();
+function drawDonut(id, labels, values, colors) {
+  const canvas = document.getElementById(id);
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.offsetWidth || 300;
+  const H = canvas.height || 200;
+  canvas.width = W * window.devicePixelRatio; canvas.height = H * window.devicePixelRatio;
+  canvas.style.width = W+'px'; canvas.style.height = H+'px';
+  ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+  ctx.clearRect(0,0,W,H);
 
-showToast('critical', '상황실 활성화', 'K-Police 상황실 대시보드 시작');
+  const cx = W*0.38, cy = H/2, R = Math.min(cx,cy)*0.85, r = R*0.55;
+  const total = values.reduce((a,b)=>a+b,0);
+  let angle = -Math.PI/2;
+  values.forEach((v,i)=>{
+    const sweep = (v/total)*Math.PI*2;
+    ctx.beginPath(); ctx.moveTo(cx,cy); ctx.arc(cx,cy,R,angle,angle+sweep); ctx.closePath();
+    ctx.fillStyle=colors[i]; ctx.fill();
+    ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.fillStyle='#fff'; ctx.fill();
+    angle+=sweep;
+  });
+  ctx.fillStyle='rgba(0,0,0,.5)'; ctx.font=`10px "Noto Sans KR",sans-serif`; ctx.textAlign='left';
+  labels.forEach((lb,i)=>{
+    const lx=W*0.58, ly=H*0.15+i*16;
+    ctx.fillStyle=colors[i]; ctx.fillRect(lx,ly-7,8,8);
+    ctx.fillStyle='rgba(0,0,0,.5)'; ctx.fillText(`${lb} (${Math.round(values[i]/total*100)}%)`,lx+11,ly);
+  });
+}
+
+function drawHeatmapHour(id) {
+  const canvas = document.getElementById(id);
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.offsetWidth || 400; const H = canvas.height || 200;
+  canvas.width=W*window.devicePixelRatio; canvas.height=H*window.devicePixelRatio;
+  canvas.style.width=W+'px'; canvas.style.height=H+'px';
+  ctx.scale(window.devicePixelRatio,window.devicePixelRatio);
+  ctx.clearRect(0,0,W,H);
+
+  const hours = Array.from({length:24},(_,i)=>i);
+  const vals = [1.2,0.8,0.6,0.5,0.5,0.7,1.1,1.8,2.4,3.1,3.8,4.2,3.9,3.2,3.5,4.8,5.2,6.1,7.4,8.2,7.8,6.4,4.2,2.4];
+  const maxV = Math.max(...vals);
+  const pad={l:8,r:8,t:10,b:22};
+  const cW=W-pad.l-pad.r; const bW=cW/24;
+  const cH=H-pad.t-pad.b;
+
+  hours.forEach((h,i)=>{
+    const v=vals[i]; const ratio=v/maxV;
+    const alpha=0.1+ratio*0.85;
+    ctx.fillStyle=`rgba(220,38,38,${alpha})`;
+    ctx.beginPath(); ctx.roundRect(pad.l+bW*i+1,pad.t,bW-2,cH,2); ctx.fill();
+    if(i%3===0){ ctx.fillStyle='rgba(0,0,0,.4)'; ctx.font='9px "Noto Sans KR",sans-serif'; ctx.textAlign='center'; ctx.fillText(h+'시',pad.l+bW*i+bW/2,H-pad.b+11); }
+  });
+}
+
+function drawPyramid(id) {
+  const canvas = document.getElementById(id);
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.offsetWidth || 400; const H = canvas.height || 220;
+  canvas.width=W*window.devicePixelRatio; canvas.height=H*window.devicePixelRatio;
+  canvas.style.width=W+'px'; canvas.style.height=H+'px';
+  ctx.scale(window.devicePixelRatio,window.devicePixelRatio);
+  ctx.clearRect(0,0,W,H);
+
+  const maxV = Math.max(...AGE_MALE,...AGE_FEMALE)*1.1;
+  const cx=W/2, pad=8, bH=Math.min(22,(H-pad*2)/AGE_GROUPS.length-4);
+  AGE_GROUPS.forEach((ag,i)=>{
+    const y = pad+(bH+4)*i;
+    const mW=(AGE_MALE[i]/maxV)*(cx-60);
+    const fW=(AGE_FEMALE[i]/maxV)*(cx-60);
+    ctx.fillStyle='rgba(29,78,216,.7)'; ctx.beginPath(); ctx.roundRect(cx-4-mW,y,mW,bH,2); ctx.fill();
+    ctx.fillStyle='rgba(220,38,38,.6)'; ctx.beginPath(); ctx.roundRect(cx+4,y,fW,bH,2); ctx.fill();
+    ctx.fillStyle='rgba(0,0,0,.45)'; ctx.font='9px "Noto Sans KR",sans-serif'; ctx.textAlign='center';
+    ctx.fillText(ag,cx,y+bH/2+3);
+    ctx.textAlign='right'; ctx.fillText(Math.round(AGE_MALE[i]/1000)+'k',cx-4-mW-2,y+bH/2+3);
+    ctx.textAlign='left'; ctx.fillText(Math.round(AGE_FEMALE[i]/1000)+'k',cx+4+fW+2,y+bH/2+3);
+  });
+  ctx.fillStyle='rgba(29,78,216,.8)'; ctx.font='9px "Noto Sans KR",sans-serif'; ctx.textAlign='right'; ctx.fillText('남성',cx-6,H-2);
+  ctx.fillStyle='rgba(220,38,38,.8)'; ctx.textAlign='left'; ctx.fillText('여성',cx+6,H-2);
+}
+
+/* ── CHART INIT BY VIEW ── */
+function initCharts(id) {
+  if (id==='v2') {
+    const colors=['#1d4ed8','#dc2626','#ea580c','#ca8a04','#7c3aed','#16a34a','#0891b2','#be185d','#78716c'];
+    setTimeout(()=>{
+      drawDonut('c-donut',CRIME_SHORT,[474271,284821,214821,184821,47284,28421,8421,2841,575523],colors);
+      drawLineChart('c-trend',MONTHS,[
+        {data:CRIME_MONTHLY,color:'#1d4ed8'},{data:CRIME_MONTHLY_PREV,color:'#9ca3af',dash:[4,3]}]);
+      drawBarChart('c-region',REGIONS,[{data:REGION_CRIMES,color:'#1d4ed8'}],{hbar:true});
+      drawHeatmapHour('c-hour');
+      renderCrosstab();
+    },50);
+  }
+  if (id==='v3') {
+    setTimeout(()=>{
+      drawPyramid('c-pyramid');
+      renderAgeHeatmap();
+      drawLineChart('c-recid',['2020','2021','2022','2023','2024'],[
+        {data:[38.2,39.4,40.1,41.8,42.7],color:'#dc2626'},
+        {data:[28.1,29.2,30.4,31.1,32.8],color:'#ea580c'},
+        {data:[18.4,19.1,20.2,21.8,23.1],color:'#1d4ed8'},
+      ]);
+      drawDonut('c-recid-donut',['초범','재범','3범 이상'],[689074,514244,1000],[`rgba(29,78,216,.7)`,`rgba(220,38,38,.7)`,`rgba(234,88,12,.7)`]);
+      renderSuspects();
+    },50);
+  }
+  if (id==='v4') {
+    setTimeout(()=>{
+      drawBarChart('c-eta',['1분↓','1~3분','3~5분','5~10분','10~20분','20분↑'],[{data:[8421,28421,184821,247821,98421,28421],color:'#1d4ed8'}]);
+      drawDonut('c-result',['현행범체포','불구속','훈방','고발·이첩','기타'],[248421,184821,128421,87421,62000],[`#1d4ed8`,`#16a34a`,`#ca8a04`,`#dc2626`,`#9ca3af`]);
+      renderEquip();
+      drawLineChart('c-dispatch-trend',MONTHS,[{data:[148421,141234,158921,162341,171234,169821,182341,178921,164821,171234,158921,132831],color:'#1d4ed8'}]);
+      renderOfficers();
+    },50);
+  }
+  if (id==='v5') {
+    setTimeout(()=>{
+      renderFunnel();
+      drawDonut('c-disposition',['기소유예','구공판','약식명령','불기소','기소중지'],[284821,184821,241234,397188,98421],[`#1d4ed8`,`#dc2626`,`#ca8a04`,`#9ca3af`,`#ea580c`]);
+      drawLineChart('c-prosecute',MONTHS,[{data:[36.2,35.8,37.4,38.1,37.8,36.9,37.2,38.4,37.1,36.8,37.4,36.8],color:'#1d4ed8'}]);
+      drawBarChart('c-duration',['살인','성폭력','강도','마약','사기','폭행','절도','교통'],[{data:[128,87,64,52,48,32,21,18],color:'#dc2626'}],{hbar:true});
+      renderLawsuits();
+    },50);
+  }
+  if (id==='v6') {
+    setTimeout(()=>{
+      renderRegionRank();
+      drawLineChart('c-region-trend',MONTHS,[{data:CRIME_MONTHLY,color:'#1d4ed8'}]);
+      drawDonut('c-region-type',CRIME_SHORT,[474271,284821,214821,184821,47284,28421,8421,2841,575523],[`#1d4ed8`,`#dc2626`,`#ea580c`,`#ca8a04`,`#7c3aed`,`#16a34a`,`#0891b2`,`#be185d`,`#78716c`]);
+    },50);
+  }
+}
+
+/* ── V2 ── */
+function renderCrosstab() {
+  const regions5 = REGIONS.slice(0,8);
+  const crimes5 = ['절도','폭행','사기','교통','성범죄'];
+  const dat = [
+    [47284,28421,21841,18421,12841,10841,9821,8421],
+    [28421,21841,12841,10841,8421,7421,6821,5841],
+    [21841,16841,9821,8421,6841,5841,5421,4841],
+    [18421,14841,8421,7421,5841,4841,4421,3841],
+    [4721,3841,2421,1841,1421,1241,1141,981],
+  ];
+  const maxV2 = Math.max(...dat.flat());
+  let html = `<table class="hm-table"><thead><tr><th>유형\\ 시도</th>${regions5.map(r=>`<th>${r}</th>`).join('')}</tr></thead><tbody>`;
+  crimes5.forEach((c,ci)=>{
+    html += `<tr><th style="text-align:left">${c}</th>`;
+    dat[ci].forEach(v=>{
+      const ratio=v/maxV2; const a=0.08+ratio*0.85;
+      html+=`<td style="background:rgba(29,78,216,${a.toFixed(2)});color:${ratio>0.5?'#fff':'var(--t1)'}">${v>=10000?Math.round(v/1000)+'k':v}</td>`;
+    });
+    html+='</tr>';
+  });
+  html+='</tbody></table>';
+  document.getElementById('crosstab-wrap').innerHTML = html;
+}
+
+/* ── V3 ── */
+function renderAgeHeatmap() {
+  const crimes6=['절도','폭행','사기','성범죄','마약','강도'];
+  const dat=[[8421,14821,21841,18421,12841,7821],[18421,28421,24821,21841,16821,10841],[14821,21841,28421,24821,18421,12841],[18421,24821,34821,28421,24821,14821],[14821,18421,28421,21841,18421,10841],[8421,12841,18421,14821,10841,6841],[4821,7421,10841,8421,6841,4021]];
+  const maxV3=Math.max(...dat.flat());
+  let html=`<table class="hm-table"><thead><tr><th>연령\\범죄</th>${crimes6.map(c=>`<th>${c}</th>`).join('')}</tr></thead><tbody>`;
+  AGE_GROUPS.forEach((ag,ai)=>{
+    html+=`<tr><th style="text-align:left">${ag}</th>`;
+    dat[ai].forEach(v=>{
+      const ratio=v/maxV3; const a=0.08+ratio*0.85;
+      html+=`<td style="background:rgba(220,38,38,${a.toFixed(2)});color:${ratio>0.5?'#fff':'var(--t1)'}">${v>=10000?Math.round(v/1000)+'k':v}</td>`;
+    });
+    html+='</tr>';
+  });
+  html+='</tbody></table>';
+  document.getElementById('age-heatmap').innerHTML=html;
+}
+
+function renderSuspects() {
+  document.getElementById('suspect-tbody').innerHTML = SUSPECTS_DATA.map(s=>{
+    const rc=s.risk==='CRITICAL'?'chip-red':s.risk==='HIGH'?'chip-orange':'chip-gray';
+    return `<tr><td style="font-family:monospace;font-size:10px;color:var(--brand)">${s.id}</td><td>${s.age}</td><td>${s.crime}</td><td>${s.recid}회</td><td><span class="chip ${rc}">${s.risk}</span></td><td>${s.status}</td></tr>`;
+  }).join('');
+}
+
+/* ── V4 ── */
+function renderEquip() {
+  const equips=[{name:'순찰차',total:24318,active:18241,unit:'대'},{name:'AV 이송차량',total:312,active:187,unit:'대'},{name:'감시 드론',total:847,active:412,unit:'대'},{name:'오토바이',total:8421,active:6184,unit:'대'}];
+  document.getElementById('equip-list').innerHTML = equips.map(e=>{
+    const pct=Math.round(e.active/e.total*100);
+    return `<div style="display:flex;flex-direction:column;gap:3px">
+      <div style="display:flex;justify-content:space-between;font-size:11px"><span style="color:var(--t2)">${e.name}</span><span style="color:var(--t3)">${e.active.toLocaleString()}/${e.total.toLocaleString()} ${e.unit}</span></div>
+      <div style="height:4px;background:var(--bg);border-radius:2px;overflow:hidden;border:.5px solid var(--bd)"><div style="height:100%;width:${pct}%;background:var(--brand);border-radius:2px"></div></div>
+    </div>`;
+  }).join('');
+}
+
+function renderOfficers() {
+  document.getElementById('officer-tbody').innerHTML = OFFICERS_DATA.map((o,i)=>{
+    const gc=o.grade==='우수'?'chip-green':o.grade==='양호'?'chip-blue':'chip-gray';
+    return `<tr><td>${o.name}</td><td>${o.rank}</td><td>${o.unit}</td><td>${o.dispatch}회</td><td>${o.avg}</td><td>${o.rate}</td><td><span class="chip ${gc}">${o.grade}</span></td></tr>`;
+  }).join('');
+}
+
+/* ── V5 ── */
+function renderFunnel() {
+  const steps=[
+    {label:'신고 접수',val:1821047},
+    {label:'수사 개시',val:1284821},
+    {label:'피의자 특정',val:894821},
+    {label:'검찰 송치',val:677429},
+    {label:'기소',val:497284},
+    {label:'재판',val:284821},
+    {label:'유죄 판결',val:241234},
+  ];
+  const maxF=steps[0].val;
+  document.getElementById('funnel-wrap').innerHTML=steps.map((s,i)=>{
+    const pct=Math.round(s.val/maxF*100);
+    const alpha=1-i*0.1;
+    return `<div class="funnel-step">
+      <span class="funnel-label">${s.label}</span>
+      <div class="funnel-bar-wrap"><div class="funnel-bar" style="width:${pct}%;background:rgba(29,78,216,${alpha})">${pct}%</div></div>
+      <span class="funnel-val">${s.val>=100000?Math.round(s.val/10000)+'만':s.val.toLocaleString()}</span>
+    </div>`;
+  }).join('');
+}
+
+function renderLawsuits() {
+  document.getElementById('lawsuit-tbody').innerHTML = LAWSUITS_DATA.map(l=>{
+    const sc=l.stage==='재판'?'chip-red':l.stage==='기소'?'chip-orange':l.stage==='수사'?'chip-blue':'chip-green';
+    return `<tr><td style="font-family:monospace;font-size:10px;color:var(--brand)">${l.id}</td><td>${l.type}</td><td>${l.suspect}</td><td><span class="chip ${sc}">${l.stage}</span></td><td>${l.disposition}</td><td>${l.date}</td><td style="font-size:10px;color:var(--t3)">${l.officer}</td></tr>`;
+  }).join('');
+}
+
+/* ── V6 ── */
+function renderRegionRank() {
+  const ranked = REGIONS.map((r,i)=>({name:r,cnt:REGION_CRIMES[i],rate:Math.round(REGION_CRIMES[i]/REGION_POP[i])}))
+    .sort((a,b)=>b.cnt-a.cnt);
+  document.getElementById('region-rank-tbody').innerHTML = ranked.map((r,i)=>`<tr>
+    <td style="color:var(--t3)">${i+1}</td>
+    <td style="cursor:pointer;color:var(--brand)" onclick="drillTo('${r.name}',null)">${r.name}</td>
+    <td style="font-variant-numeric:tabular-nums">${r.cnt.toLocaleString()}</td>
+    <td><span class="chip ${r.rate>3000?'chip-red':r.rate>2000?'chip-orange':'chip-gray'}">${r.rate}</span></td>
+  </tr>`).join('');
+}
+
+function drillTo(region, sub) {
+  document.getElementById('v6-region').textContent = region;
+  const bc = document.getElementById('breadcrumb');
+  if (region==='전국') bc.innerHTML=`<span onclick="drillTo('전국',null)">전국</span>`;
+  else bc.innerHTML=`<span onclick="drillTo('전국',null)">전국</span><span class="sep"> / </span><span onclick="drillTo('${region}',null)">${region}</span>`;
+}
+
+/* ── MAPS ── */
+function initMap1() {
+  if (typeof kakao==='undefined') { showFallbackMap('kakao-map'); return; }
+  try {
+    const container = document.getElementById('kakao-map');
+    const map = new kakao.maps.Map(container,{center:new kakao.maps.LatLng(36.5,127.5),level:8});
+    window._map1 = map;
+    // Add markers
+    INCIDENTS.forEach(inc=>{
+      const positions={
+        '서울 강남구 역삼동':[37.5004,127.0366],'경기 수원시 팔달구':[37.2755,127.0095],
+        '부산 해운대구 좌동':[35.1794,129.1758],'인천 남동구 구월동':[37.4496,126.7219],
+        '대구 달서구 월성동':[35.8352,128.5128],'광주 북구 운암동':[35.1716,126.9109],
+        '대전 유성구 봉명동':[36.3543,127.3398],'울산 중구 성남동':[35.5501,129.3178],
+      };
+      const pos=positions[inc.loc];
+      if(!pos) return;
+      const content=`<div style="width:12px;height:12px;border-radius:50%;background:${inc.sev==='CRITICAL'?'#dc2626':inc.sev==='HIGH'?'#ea580c':'#ca8a04'};border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.3)"></div>`;
+      const overlay=new kakao.maps.CustomOverlay({position:new kakao.maps.LatLng(pos[0],pos[1]),content,zIndex:3});
+      overlay.setMap(map);
+    });
+  } catch(e){ showFallbackMap('kakao-map'); }
+}
+
+function initMap2() {
+  if (typeof kakao==='undefined') { showFallbackMap('kakao-map2'); return; }
+  try {
+    const map=new kakao.maps.Map(document.getElementById('kakao-map2'),{center:new kakao.maps.LatLng(36.5,127.5),level:9});
+    window._map2=map;
+  } catch(e){ showFallbackMap('kakao-map2'); }
+}
+
+function initMap3() {
+  if (typeof kakao==='undefined') { showFallbackMap('kakao-map3'); return; }
+  try {
+    const map=new kakao.maps.Map(document.getElementById('kakao-map3'),{center:new kakao.maps.LatLng(36.5,127.5),level:8});
+    window._map3=map;
+  } catch(e){ showFallbackMap('kakao-map3'); }
+}
+
+function showFallbackMap(id) {
+  const el=document.getElementById(id);
+  if(!el) return;
+  el.style.background='#f0f4f8';
+  el.style.display='flex';
+  el.style.alignItems='center';
+  el.style.justifyContent='center';
+  el.innerHTML=`<div style="text-align:center;color:#9898a6;font-size:12px"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" style="margin:0 auto 8px;display:block"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>Kakao JS Key 설정 후<br>지도가 표시됩니다</div>`;
+}
+
+/* ── TOAST ── */
+function toast(type,title,sub) {
+  const wrap=document.getElementById('toast-wrap');
+  const div=document.createElement('div');
+  div.className='toast'+(type==='red'?' red':'');
+  div.innerHTML=`<div><div class="toast-title">${title}</div><div class="toast-sub">${sub}</div></div>`;
+  wrap.appendChild(div);
+  setTimeout(()=>{div.style.opacity='0';div.style.transition='opacity .25s';setTimeout(()=>div.remove(),250);},4000);
+}
+
+function allDispatch() { toast('red','전체 출동 발령','모든 대기 요원 즉시 출동'); }
+
+/* ── SIMULATION ── */
+const INC_TYPES=['보이스피싱','스토킹','가정폭력','사이버범죄','절도','폭행','강도','성범죄'];
+const INC_LOCS=['서울 강남','서울 종로','경기 수원','부산 해운대','인천 연수','대구 달서','광주 북구','대전 유성'];
+const SEVS=['CRITICAL','HIGH','HIGH','MEDIUM','LOW'];
+let seq=840;
+setInterval(()=>{
+  const sev=SEVS[Math.floor(Math.random()*SEVS.length)];
+  const type=INC_TYPES[Math.floor(Math.random()*INC_TYPES.length)];
+  const loc=INC_LOCS[Math.floor(Math.random()*INC_LOCS.length)];
+  const id=`KP-20260604-0${seq++}`;
+  INCIDENTS.unshift({id,sev,type,loc,status:'active',elapsed:'00:00',agent:'자동배정 중'});
+  if(INCIDENTS.length>15) INCIDENTS.pop();
+  const crit=INCIDENTS.filter(i=>i.sev==='CRITICAL'&&i.status!=='resolved').length;
+  document.getElementById('critical-cnt').textContent=crit;
+  document.getElementById('v1-critical').textContent=crit;
+  document.getElementById('v1-active').textContent=INCIDENTS.filter(i=>i.status!=='resolved').length;
+  if(currentView==='v1') renderV1();
+  if(sev==='CRITICAL') toast('red','CRITICAL 사건 접수',type+' · '+loc);
+  else if(sev==='HIGH') toast('',type+' 신고 접수',loc);
+},10000);
+
+/* ── INIT ── */
+document.body.classList.add('has-sb','sb-collapsed');
+// sidebar collapse logic (body padding = 48px)
+document.querySelector('.sidebar').addEventListener('mouseenter',()=>{ document.querySelector('.topbar').style.left='var(--sb-open)'; document.querySelector('.main').style.left='var(--sb-open)'; });
+document.querySelector('.sidebar').addEventListener('mouseleave',()=>{ document.querySelector('.topbar').style.left='var(--sb)'; document.querySelector('.main').style.left='var(--sb)'; });
+
+renderV1();
+chartsInit['v1'] = true;
+initMap1();
 </script>
 
+<style>
+.topbar,.main{transition:left 200ms cubic-bezier(.4,0,.2,1)}
+</style>
 </body>
 </html>
