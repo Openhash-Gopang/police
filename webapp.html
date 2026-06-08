@@ -161,6 +161,12 @@ html,body{height:100%;height:100dvh;overflow:hidden;
 .send-btn:disabled{background:#c7c7cc;cursor:not-allowed}
 .send-btn svg{width:16px;height:16px;fill:#fff}
 
+/* 마이크 버튼 */
+.mic-btn{width:36px;height:36px;border-radius:50%;background:var(--bg);border:1px solid var(--sep);display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;transition:background .15s}
+.mic-btn.active{background:#fee2e2;border-color:#fca5a5}
+.mic-btn svg{width:15px;height:15px;stroke:#6b7280;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.mic-btn.active svg{stroke:var(--red)}
+
 /* GPS 위치 표시 */
 .location-bar{display:flex;align-items:center;gap:6px;padding:4px 16px;
   background:rgba(29,78,216,.06);flex-shrink:0;font-size:11px;color:var(--txt2)}
@@ -258,6 +264,9 @@ html,body{height:100%;height:100dvh;overflow:hidden;
     <div class="input-wrap">
       <textarea id="msg-input" rows="1" placeholder="상황을 말씀해 주세요…"></textarea>
     </div>
+    <button class="mic-btn" id="mic-btn" onclick="toggleMic()">
+      <svg viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="11" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/></svg>
+    </button>
     <button class="send-btn" id="send-btn" disabled>
       <svg viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4 20-7z"/></svg>
     </button>
@@ -288,8 +297,19 @@ let _scheduleContext = [];
 const _params = new URLSearchParams(location.search);
 const _isGwp  = _params.get('gwp') === '1';
 _gwpOrigin = _params.get('origin') || 'https://gopang.net';
-try { _gwpContext = _params.get('ctx') ? decodeURIComponent(_params.get('ctx')) : null; }
-catch { _gwpContext = null; }
+
+// ctx 파라미터 — ctx_enc=b64 분기
+try {
+  const ctxRaw = _params.get('ctx') || '';
+  const ctxEnc = _params.get('ctx_enc');
+  if (ctxRaw) {
+    _gwpContext = ctxEnc === 'b64'
+      ? decodeURIComponent(escape(atob(ctxRaw)))
+      : decodeURIComponent(ctxRaw);
+  } else {
+    _gwpContext = null;
+  }
+} catch { _gwpContext = null; }
 
 // ── GPS 위치 ──────────────────────────────────────────────
 function initLocation() {
@@ -571,9 +591,10 @@ async function sendMessage(text) {
   document.getElementById('quick-chips').style.display = 'none';
   appendUser(text);
   _sessionMsgCnt++;
-  document.getElementById('msg-input').value = '';
-  document.getElementById('msg-input').style.height = 'auto';
-  document.getElementById('send-btn').disabled = true;
+  const inp = document.getElementById('msg-input');
+  inp.value = '';
+  autoResize(inp);
+  updateSendBtn();
 
   // 위험 분석
   const { level } = RiskEngine.analyzeContext({
@@ -604,15 +625,22 @@ async function sendMessage(text) {
 
 function quickSend(text) { sendMessage(text); }
 
+// ── autoResize / updateSendBtn ───────────────────────────
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 100) + 'px';
+}
+function updateSendBtn() {
+  const inp = document.getElementById('msg-input');
+  const btn = document.getElementById('send-btn');
+  if (btn) btn.disabled = !inp.value.trim();
+}
+
 // ── 입력 이벤트 ───────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   const inp = document.getElementById('msg-input');
   const btn = document.getElementById('send-btn');
-  inp.addEventListener('input', () => {
-    inp.style.height = 'auto';
-    inp.style.height = Math.min(inp.scrollHeight, 100) + 'px';
-    btn.disabled = !inp.value.trim();
-  });
+  inp.addEventListener('input', () => { autoResize(inp); updateSendBtn(); });
   inp.addEventListener('keydown', e => {
     if (e.key==='Enter' && !e.shiftKey) { e.preventDefault(); if (!btn.disabled) sendMessage(inp.value.trim()); }
   });
@@ -629,24 +657,109 @@ function suggestComplete() {
 }
 function hideBanner() { document.getElementById('complete-banner').classList.remove('show'); }
 
-// ── PDV 전송 ─────────────────────────────────────────────
+// ── PDV 표준 payload { user_guid, source, report: { pdv_6w } } ─
 async function sendPDVReport() {
-  if (!_user?.ipv6) return null;
+  const user_guid = _user?.ipv6 || _user?.guid || 'anonymous';
   const mins = Math.round((new Date() - _sessionStart) / 60000);
   try {
-    const res = await fetch(`${KPOLICE_CONFIG.proxyUrl}/pdv/report`, {
+    const res = await fetch(`${KPOLICE_CONFIG.proxyUrl}/pdv_log`, {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({
-        svc:'police', type:'police_session_complete', ipv6:_user.ipv6,
-        who:_user.ipv6, when:new Date().toISOString(), where:'police.gopang.net',
-        what:{ session_minutes:mins, message_count:_sessionMsgCnt,
-               risk_level:_currentRisk, case_number:_activeCaseNum },
-        how:{ method:'AI 경찰관 채팅', device:'mobile' },
-        why:{ goal:'범죄 예방 및 피해 대응' },
+        user_guid,
+        source: 'kpolice',
+        report: {
+          pdv_6w: {
+            who:   user_guid,
+            when:  new Date().toISOString(),
+            where: location.href,
+            what:  `K-Police 상담 완료 — ${mins}분 / ${_sessionMsgCnt}회`,
+            how:   `AI 경찰관 채팅 / 위험도: ${_currentRisk}${_activeCaseNum ? ' / 사건번호: '+_activeCaseNum : ''}`,
+            why:   '범죄 예방 및 피해 대응',
+          },
+        },
       }),
     });
     return (await res.json())?.pdv_entry || 'recorded';
   } catch { return null; }
+}
+
+// ── 마이크 — v3.6 패턴 ───────────────────────────────────
+let micActive = false;
+let recognition = null;
+let mediaRecorder = null;
+let audioChunks = [];
+
+function _micSetUI(active) {
+  micActive = active;
+  const btn = document.getElementById('mic-btn');
+  if (btn) btn.classList.toggle('active', active);
+}
+
+function _micStartWebSpeech(SR) {
+  recognition = new SR();
+  recognition.lang           = 'ko-KR';
+  recognition.continuous     = false;
+  recognition.interimResults = false;
+  recognition.maxAlternatives = 1;
+
+  recognition.onresult = (e) => {
+    const t = e.results[0][0].transcript;
+    const inp = document.getElementById('msg-input');
+    if (inp && t) {
+      inp.value = t;
+      autoResize(inp);   // ★ 직접 호출
+      updateSendBtn();   // ★ 직접 호출
+    }
+    _micSetUI(false);
+    setTimeout(() => { if (inp?.value.trim()) sendMessage(inp.value.trim()); }, 100);
+  };
+
+  recognition.onerror = (e) => {
+    _micSetUI(false);
+    console.warn('[Mic] 오류:', e.error);
+    if (e.error !== 'aborted') appendAI('🎤 음성 인식 오류: ' + e.error, 'LOW');
+  };
+
+  recognition.onend = () => { _micSetUI(false); };
+
+  recognition.start();
+  _micSetUI(true);
+}
+
+async function _micStartMediaRecorder() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    audioChunks = [];
+    mediaRecorder = new MediaRecorder(stream);
+    mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+    mediaRecorder.onstop = async () => {
+      stream.getTracks().forEach(t => t.stop());
+      _micSetUI(false);
+    };
+    mediaRecorder.start();
+    _micSetUI(true);
+  } catch(e) {
+    _micSetUI(false);
+    appendAI('🎤 마이크 권한이 필요합니다.', 'LOW');
+  }
+}
+
+function toggleMic() {
+  if (micActive) {
+    if (recognition) { try { recognition.stop(); } catch(e) {} recognition = null; }
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+    _micSetUI(false);
+    return;
+  }
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!isIOS && SR) {
+    _micStartWebSpeech(SR);
+  } else if (isIOS && window.MediaRecorder) {
+    _micStartMediaRecorder();
+  } else {
+    appendAI('🎤 이 브라우저에서는 음성 인식을 지원하지 않습니다.', 'LOW');
+  }
 }
 
 async function finishAndReturn() {
