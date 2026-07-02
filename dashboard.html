@@ -299,7 +299,7 @@ canvas{display:block;width:100%!important}
   </nav>
 
   <div class="sb-bottom">
-    <a href="https://gopang.net" class="sb-item">
+    <a href="https://hondi.net" class="sb-item">
       <svg class="sb-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M5 12l6 6"/><path d="M5 12l6-6"/></svg>
       <span class="sb-label">고팡으로</span>
     </a>
@@ -644,7 +644,7 @@ window._onGopangAuth = async function(u) {
           body:JSON.stringify({report:{svc:'kpolice',type:'event',
             who:{ipv6:guid,role:'user',level:u.level||'L0',recipients:['gopang-pdv']},
             when:{period_start:new Date().toISOString(),period_end:new Date().toISOString()},
-            where:{svc_url:'https://police.gopang.net/dashboard.html'},
+            where:{svc_url:'https://police.hondi.net/dashboard.html'},
             what:{summary:'상황실 대시보드 접속'},how:{method:'SSO'},why:{goal:'모니터링'}
           }})});
       } catch(e){}

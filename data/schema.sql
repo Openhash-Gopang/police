@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS police_log (
   created_at      TIMESTAMPTZ DEFAULT NOW(),
   who             TEXT NOT NULL,
   when_ts         TIMESTAMPTZ NOT NULL,
-  where_svc       TEXT DEFAULT 'police.gopang.net',
+  where_svc       TEXT DEFAULT 'police.hondi.net',
   what            JSONB NOT NULL,
   how             JSONB,
   why             JSONB,

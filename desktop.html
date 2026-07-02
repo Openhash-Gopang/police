@@ -290,7 +290,7 @@ table.rt td.red{color:var(--red)!important}
     <div class="sb-sep"></div>
 
     <div class="sb-section-label">연동 서비스</div>
-    <a href="https://gopang.net" class="sb-item">
+    <a href="https://hondi.net" class="sb-item">
       <svg class="sb-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><circle cx="12" cy="12" r="9"/><path d="M3.6 9h16.8M3.6 15h16.8M11.5 3a17 17 0 0 0 0 18M12.5 3a17 17 0 0 1 0 18"/></svg>
       <span class="sb-label">고팡</span>
     </a>
@@ -305,7 +305,7 @@ table.rt td.red{color:var(--red)!important}
   </nav>
 
   <div class="sb-bottom">
-    <a href="https://gopang.net" class="sb-item">
+    <a href="https://hondi.net" class="sb-item">
       <svg class="sb-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l14 0"/><path d="M5 12l6 6"/><path d="M5 12l6 -6"/></svg>
       <span class="sb-label">고팡으로 돌아가기</span>
     </a>
@@ -692,15 +692,15 @@ table.rt td.red{color:var(--red)!important}
           <li><a href="webapp.html">K-Police 앱</a></li>
           <li><a href="dashboard.html">상황실 대시보드</a></li>
           <li><a href="ops.html">상황실 (Ops)</a></li>
-          <li><a href="https://gopang.net">고팡 홈</a></li>
+          <li><a href="https://hondi.net">고팡 홈</a></li>
         </ul>
       </div>
       <div>
         <div class="footer-col-title">연동 서비스</div>
         <ul class="footer-links">
           <li><a href="https://klaw.openhash.kr">K-Law</a></li>
-          <li><a href="https://market.gopang.net">고팡 마켓</a></li>
-          <li><a href="https://tax.gopang.net">고팡 세무</a></li>
+          <li><a href="https://market.hondi.net">고팡 마켓</a></li>
+          <li><a href="https://tax.hondi.net">고팡 세무</a></li>
           <li><a href="https://openhash.kr">OpenHash</a></li>
         </ul>
       </div>
@@ -716,7 +716,7 @@ table.rt td.red{color:var(--red)!important}
     </div>
     <div class="footer-bottom">
       <span>© 2026 K-Police · AI City Inc.</span>
-      <span>police.gopang.net · Powered by Gopang &amp; OpenHash · 제주 시범 서비스</span>
+      <span>police.hondi.net · Powered by Gopang &amp; OpenHash · 제주 시범 서비스</span>
     </div>
   </div>
 </footer>
@@ -754,7 +754,7 @@ table.rt td.red{color:var(--red)!important}
   <span class="float-label">AI 상담</span>
 </div>
 
-<script type="module" src="https://gopang.net/auth/subsystem-auth.js"></script>
+<script type="module" src="https://hondi.net/auth/subsystem-auth.js"></script>
 
 <script>
 /* ── Gopang SSO 콜백 ── */
@@ -785,7 +785,7 @@ async function sendPolicePDV(ipv6, user) {
         svc: 'kpolice', type: 'event',
         who:   { ipv6, role: 'user', level: user?.level || 'L0', recipients: ['gopang-pdv'] },
         when:  { period_start: now, period_end: now },
-        where: { svc_url: 'https://police.gopang.net/desktop.html' },
+        where: { svc_url: 'https://police.hondi.net/desktop.html' },
         what:  { summary: 'K-Police 데스크탑 접속 — 서비스 소개 열람' },
         how:   { method: '고팡 SSO 자동 인증 (경로: ' + (user?.via || 'session') + ')' },
         why:   { goal: 'K-Police 서비스 이해 및 이용 검토' },

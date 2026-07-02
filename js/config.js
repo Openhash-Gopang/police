@@ -2,7 +2,7 @@ const KPOLICE_CONFIG = {
   svc:         'police',
   name:        'K-Police',
   version:     '2.0',
-  gopangUrl:   'https://gopang.net',
+  gopangUrl:   'https://hondi.net',
   proxyUrl:    'https://gopang-proxy.tensor-city.workers.dev',
   model:       'deepseek-chat',
   maxTokens:   1200,

@@ -8,14 +8,14 @@
  *   3. initAuth() 호출 → _user 전역 설정
  *
  * 인증 흐름:
- *   서브시스템 → gopang.net/auth.html?svc=SVC_ID&redirect=현재URL
+ *   서브시스템 → hondi.net/auth.html?svc=SVC_ID&redirect=현재URL
  *     → (등록/로그인) → 현재URL?token=ipv6
  *       → initAuth()가 token 파싱 → _user 설정 → 앱 시작
  */
 
 // ── 서비스 설정 (서브시스템마다 이 두 값만 변경) ──────────
 const _AUTH_SVC_ID   = typeof SVC_ID   !== 'undefined' ? SVC_ID   : 'gopang';
-const _AUTH_GOPANG   = typeof GOPANG_URL!== 'undefined' ? GOPANG_URL: 'https://gopang.net';
+const _AUTH_GOPANG   = typeof GOPANG_URL!== 'undefined' ? GOPANG_URL: 'https://hondi.net';
 
 // ── 전역 사용자 객체 ──────────────────────────────────────
 let _user = null;

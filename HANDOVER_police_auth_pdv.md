@@ -1,4 +1,4 @@
-# HANDOVER — police.gopang.net 인증 · PDV 테스트
+# HANDOVER — police.hondi.net 인증 · PDV 테스트
 
 **작성일:** 2026-06-04  
 **저장소:** https://github.com/Openhash-Gopang/police  
@@ -23,7 +23,7 @@ svc ID          = 'kpolice'  (Worker SVC_ALIAS: kpolice → police)
 각 HTML 파일의 `</body>` 직전에 아래 한 줄을 추가합니다.
 
 ```html
-<script type="module" src="https://gopang.net/auth/subsystem-auth.js"></script>
+<script type="module" src="https://hondi.net/auth/subsystem-auth.js"></script>
 ```
 
 **적용 대상 파일:**
@@ -73,7 +73,7 @@ async function sendPolicePDV(ipv6, user, reportOverride = null) {
         recipients: ['gopang-pdv'],
       },
       when:  { period_start: now, period_end: now },
-      where: { svc_url: 'https://police.gopang.net/webapp.html' },
+      where: { svc_url: 'https://police.hondi.net/webapp.html' },
       what:  { summary: 'K-Police 접속 — 치안 서비스 이용' },
       how:   { method: '고팡 SSO 자동 인증 (경로: ' + (user?.via || 'session') + ')' },
       why:   { goal: '치안 서비스 접속 및 이용' },
@@ -119,7 +119,7 @@ async function sendPolicePDV(ipv6, user, reportOverride = null) {
 | 단계 | 확인 항목 | 성공 기준 |
 |---|---|---|
 | **T1** | 코드 삽입 확인 | `_onGopangAuth`, `sendPolicePDV`, `subsystem-auth.js` 존재 |
-| **T2** | GitHub Pages 배포 | `police.gopang.net` 접속 정상 |
+| **T2** | GitHub Pages 배포 | `police.hondi.net` 접속 정상 |
 | **T3** | SSO 인증 | Console: `[POLICE] 인증 완료: 2601:db80:…` |
 | **T4** | user.ipv6 수신 | Console: IPv6 형식 GUID 출력 |
 | **T5** | PDV 전송 | Console: `[POLICE PDV] PDV-… PDV 기록 완료. police (Level 3)` |
@@ -129,7 +129,7 @@ async function sendPolicePDV(ipv6, user, reportOverride = null) {
 
 ## 6. 빠른 브라우저 테스트 (T5 직접 확인)
 
-배포 후 `police.gopang.net` 접속 → F12 콘솔:
+배포 후 `police.hondi.net` 접속 → F12 콘솔:
 
 ```javascript
 // PDV 직접 전송 테스트
@@ -140,7 +140,7 @@ fetch('https://gopang-proxy.tensor-city.workers.dev/pdv/report', {
     svc: 'kpolice', type: 'event',
     who:   { ipv6: '테스트GUID', role: 'user', level: 'L0', recipients: ['gopang-pdv'] },
     when:  { period_start: new Date().toISOString(), period_end: new Date().toISOString() },
-    where: { svc_url: 'https://police.gopang.net/webapp.html' },
+    where: { svc_url: 'https://police.hondi.net/webapp.html' },
     what:  { summary: 'K-Police PDV 테스트' },
     how:   { method: '수동 테스트' },
     why:   { goal: '연동 확인' },
@@ -176,5 +176,5 @@ user.ipv6 undefined
 
 ---
 
-*이 문서는 tax.gopang.net 인증 (T1~T7 전체 통과) 경험을 기반으로 작성됨.*  
+*이 문서는 tax.hondi.net 인증 (T1~T7 전체 통과) 경험을 기반으로 작성됨.*  
 *Worker v4.3 SVC_ALIAS 참고: `Openhash-Gopang/gopang_v2/worker.js`*
