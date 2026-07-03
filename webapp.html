@@ -1,1197 +1,609 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#ffffff">
-<title>K-Police AI 경찰관</title>
-<link rel="icon" href="data:,">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&display=swap">
 <script src="/gopang-wallet.js"></script>
-<script src="js/config.js"></script>
-<script src="js/auth.js"></script>
-<script src="js/risk-engine.js"></script>
-<script src="js/dispatch.js"></script>
-<script src="js/lawsuit.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0">
+<title>K-Police — 민원 안내</title>
+<meta name="description" content="K-Police 안내 AI — 응급 상황은 즉시 112 신고를 안내하고, 비응급 민원만 대화로 처리합니다.">
+
+<!-- ── 고팡 공통 인증 (subsystem-auth) ── -->
 <script type="module" src="https://hondi.net/auth/subsystem-auth.js"></script>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 <style>
-
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;height:100dvh;overflow:hidden;
-  font-family:'Pretendard',-apple-system,'Helvetica Neue',sans-serif;
-  font-size:15px;background:#fff;color:#111;-webkit-font-smoothing:antialiased}
-:root{
-  --green:#16a34a;--green-lt:#dcfce7;--green-dk:#15803d;--green-bd:#86efac;
-  --border:#e5e7eb;--txt2:#6b7280;--txt3:#9ca3af;
-  --chip-bg:#f9fafb;--chip-border:#e5e7eb;
-  --safe-t:env(safe-area-inset-top,0px);
-  --safe-b:env(safe-area-inset-bottom,0px);
-}
-
-/* ── 앱 레이아웃 ── */
-.app{display:flex;flex-direction:column;height:100%;height:100dvh;
-  max-width:480px;margin:0 auto;background:#fff;overflow:hidden}
-
-/* ── 상단 바 ── */
-.topbar{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:calc(var(--safe-t)+12px) 16px 12px;
-  border-bottom:1px solid var(--border);flex-shrink:0;background:#fff;
-}
-.topbar-left{display:flex;align-items:center;gap:8px}
-.topbar-icon{width:28px;height:28px;background:var(--green);border-radius:7px;
-  display:flex;align-items:center;justify-content:center}
-.topbar-icon svg{width:14px;height:14px;stroke:#fff;stroke-width:2;fill:none;
-  stroke-linecap:round;stroke-linejoin:round}
-.topbar-name{font-size:15px;font-weight:800;color:#111;letter-spacing:-.3px}
-.topbar-right{display:flex;align-items:center;gap:6px}
-.auth-badge{font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;
-  background:var(--chip-bg);color:var(--txt2);border:1px solid var(--chip-border);display:none}
-.top-btn{
-  display:flex;align-items:center;gap:4px;padding:6px 10px;border-radius:8px;
-  font-size:12px;font-weight:600;color:var(--txt2);background:none;border:none;
-  cursor:pointer;transition:background .12s,color .12s;
-}
-.top-btn:hover,.top-btn:active{background:var(--chip-bg);color:#111}
-.top-btn svg{width:13px;height:13px;stroke:currentColor;stroke-width:2;fill:none;
-  stroke-linecap:round;stroke-linejoin:round}
-.top-btn.icon-only{padding:6px;border-radius:8px}
-.top-btn.icon-only svg{width:18px;height:18px}
-
-/* ── 설정 패널 ── */
-.settings-panel{
-  position:fixed;inset:0;z-index:999;display:flex;justify-content:flex-end;
-  visibility:hidden;
-}
-.settings-panel.open{visibility:visible}
-.settings-overlay{
-  flex:1;background:rgba(0,0,0,.3);
-  opacity:0;transition:opacity .25s;cursor:pointer;
-}
-.settings-panel.open .settings-overlay{opacity:1}
-.settings-drawer{
-  width:80%;max-width:300px;background:#fff;height:100%;
-  display:flex;flex-direction:column;
-  transform:translateX(100%);transition:transform .25s;
-  box-shadow:-4px 0 24px rgba(0,0,0,.12);
-}
-.settings-panel.open .settings-drawer{transform:translateX(0)}
-.settings-head{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:calc(var(--safe-t)+14px) 16px 14px;
-  border-bottom:1px solid var(--border);flex-shrink:0;
-}
-.settings-head-title{font-size:15px;font-weight:800;color:#111}
-.settings-close{background:none;border:none;cursor:pointer;padding:4px;
-  display:flex;align-items:center;justify-content:center;border-radius:6px}
-.settings-close:hover{background:var(--chip-bg)}
-.settings-close svg{width:18px;height:18px;stroke:#6b7280;stroke-width:2;fill:none;
-  stroke-linecap:round;stroke-linejoin:round}
-.settings-body{flex:1;overflow-y:auto;padding:12px 0}
-.settings-section{padding:8px 16px 4px}
-.settings-section-title{font-size:11px;font-weight:700;color:var(--txt3);
-  text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
-.settings-item{
-  display:flex;align-items:center;gap:12px;padding:11px 16px;
-  cursor:pointer;transition:background .12s;border-radius:0;
-}
-.settings-item:hover{background:var(--chip-bg)}
-.settings-item svg{width:18px;height:18px;stroke:#374151;stroke-width:1.8;fill:none;
-  stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
-.settings-item-label{font-size:14px;font-weight:500;color:#111}
-.settings-item-sub{font-size:12px;color:var(--txt2);margin-top:1px}
-.settings-sep{height:1px;background:var(--border);margin:4px 16px}
-
-/* ── 채팅 화면 ── */
-.chat-screen{display:flex;flex-direction:column;flex:1;overflow:hidden}
-
-/* ── 채팅 바디 ── */
-.chat-body{
-  flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;
-  padding:0 16px 12px;display:flex;flex-direction:column;gap:10px;background:#fff;
-}
-
-/* 인트로 */
-.intro-section{
-  display:flex;flex-direction:column;align-items:center;
-  padding:40px 0 28px;gap:16px;
-}
-.intro-icon{
-  width:68px;height:68px;border-radius:20px;background:var(--green);
-  display:flex;align-items:center;justify-content:center;
-  box-shadow:0 8px 28px rgba(22,163,74,.28);
-}
-.intro-icon svg{width:32px;height:32px;stroke:#fff;stroke-width:1.8;fill:none;
-  stroke-linecap:round;stroke-linejoin:round}
-.intro-title{font-size:20px;font-weight:800;color:#111;letter-spacing:-.4px;text-align:center}
-.intro-sub{font-size:14px;color:var(--txt2);line-height:1.65;text-align:center}
-.chip-row{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;padding:0 8px}
-.chip{
-  display:inline-flex;align-items:center;gap:5px;padding:8px 14px;border-radius:20px;
-  background:#fff;border:1.5px solid var(--chip-border);
-  font-size:13px;font-weight:600;color:#374151;cursor:pointer;
-  transition:border-color .12s,background .12s,color .12s;white-space:nowrap;
-}
-.chip svg{width:13px;height:13px;stroke:currentColor;stroke-width:2;fill:none;
-  stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
-.chip:hover,.chip:active{background:var(--green-lt);border-color:var(--green);color:var(--green-dk)}
-
-/* 버블 */
-.b-ai{
-  max-width:88%;align-self:flex-start;
-  background:#f9fafb;border:1px solid var(--border);
-  border-radius:4px 16px 16px 16px;
-  padding:10px 14px;font-size:14px;line-height:1.75;color:#111;
-  box-shadow:0 1px 2px rgba(0,0,0,.04);
-}
-.b-ai b{font-weight:700}
-.b-ai code{background:#f1f5f9;padding:1px 5px;border-radius:4px;font-size:13px}
-.b-user{
-  max-width:88%;align-self:flex-end;
-  background:var(--green);color:#fff;
-  border-radius:16px 16px 4px 16px;
-  padding:10px 14px;font-size:14px;line-height:1.75;
-}
-.b-time{font-size:10px;color:var(--txt3);margin-top:3px;padding:0 2px}
-.b-ai-wrap{display:flex;flex-direction:column;align-self:flex-start;max-width:88%}
-.b-user-wrap{display:flex;flex-direction:column;align-items:flex-end;max-width:88%;align-self:flex-end}
-
-/* ── 입력 영역 ── */
-.chat-input-area{
-  background:#fff;border-top:1px solid var(--border);
-  padding:10px 12px calc(10px + var(--safe-b));
-  display:flex;align-items:flex-end;flex-shrink:0;gap:6px;
-}
-.input-wrap{
-  flex:1;display:flex;align-items:flex-end;background:#f3f4f6;
-  border:1.5px solid transparent;border-radius:22px;
-  padding:8px 10px 8px 14px;
-  transition:border-color .15s,background .15s;min-width:0;
-}
-.input-wrap:focus-within{border-color:var(--green);background:#fff}
-.chat-textarea{
-  flex:1;background:transparent;border:none;
-  font-family:'Pretendard',sans-serif;font-size:14px;
-  resize:none;outline:none;max-height:120px;line-height:1.5;
-  color:#111;padding:2px 0;min-width:0;
-}
-.chat-textarea::placeholder{color:var(--txt3)}
-
-/* 입력 필드 옆 전송 버튼 (항상 표시) */
-.chat-send-btn{
-  width:34px;height:34px;border-radius:50%;background:var(--green);
-  display:flex;align-items:center;justify-content:center;
-  flex-shrink:0;border:none;cursor:pointer;transition:background .12s;align-self:flex-end;
-}
-.chat-send-btn:disabled{background:var(--green-bd);cursor:not-allowed}
-.chat-send-btn svg{width:14px;height:14px;stroke:#fff;stroke-width:2.2;fill:none;
-  stroke-linecap:round;stroke-linejoin:round}
-
-/* 보조 버튼 그룹 — 기본 표시, 입력 중 숨김 */
-.aux-btns{
-  display:flex;align-items:center;gap:2px;flex-shrink:0;align-self:flex-end;
-  transition:opacity .15s,width .15s;overflow:hidden;
-}
-.aux-btns.hidden{opacity:0;width:0;pointer-events:none}
-.aux-btn{
-  width:40px;height:40px;border-radius:50%;background:none;border:none;
-  display:flex;align-items:center;justify-content:center;cursor:pointer;
-  transition:background .12s;flex-shrink:0;
-}
-.aux-btn:hover,.aux-btn:active{background:var(--chip-bg)}
-.aux-btn svg{width:22px;height:22px;stroke:#6b7280;stroke-width:1.8;fill:none;
-  stroke-linecap:round;stroke-linejoin:round}
-.aux-btn.mic-btn svg{stroke:var(--green);width:24px;height:24px;stroke-width:2}
-
-/* ── 토스트 ── */
-.toast{
-  position:fixed;bottom:calc(80px + var(--safe-b));left:50%;
-  transform:translateX(-50%) translateY(10px);
-  background:#111;color:#fff;border-radius:10px;
-  padding:10px 18px;font-size:13px;font-weight:500;
-  z-index:9999;opacity:0;transition:all .25s;white-space:nowrap;
-}
-.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-
-/* ── 대화 기록 모달 ── */
-.history-modal{
-  position:fixed;inset:0;z-index:1000;
-  background:rgba(0,0,0,.45);
-  display:flex;align-items:flex-end;justify-content:center;
-  visibility:hidden;opacity:0;transition:opacity .2s,visibility .2s;
-}
-.history-modal.open{visibility:visible;opacity:1}
-.history-sheet{
-  width:100%;max-width:480px;background:#fff;
-  border-radius:20px 20px 0 0;
-  max-height:75dvh;display:flex;flex-direction:column;
-  transform:translateY(100%);transition:transform .25s;
-}
-.history-modal.open .history-sheet{transform:translateY(0)}
-.history-sheet-head{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:16px 16px 12px;border-bottom:1px solid var(--border);flex-shrink:0;
-}
-.history-sheet-title{font-size:15px;font-weight:800;color:#111}
-.history-sheet-close{background:none;border:none;cursor:pointer;padding:4px;
-  border-radius:6px;display:flex;align-items:center;justify-content:center}
-.history-sheet-close:hover{background:var(--chip-bg)}
-.history-sheet-close svg{width:18px;height:18px;stroke:#6b7280;stroke-width:2;fill:none;
-  stroke-linecap:round;stroke-linejoin:round}
-.history-body{flex:1;overflow-y:auto;padding:12px 16px;display:flex;flex-direction:column;gap:8px}
-.history-empty{text-align:center;color:var(--txt3);font-size:14px;padding:32px 0}
-.history-item{border-radius:10px;padding:10px 12px;font-size:13px;line-height:1.6}
-.history-item.user{background:var(--green-lt);color:var(--green-dk);align-self:flex-end;max-width:88%;text-align:right}
-.history-item.ai{background:var(--chip-bg);color:#374151;align-self:flex-start;max-width:88%}
-.history-item-role{font-size:10px;font-weight:700;margin-bottom:3px;opacity:.7}
-
-
-/* ── K-Police 전용 ── */
 :root {
-  --red:#dc2626;--orange:#ea580c;--blue:#1d4ed8;
-  --surface:#fff;--red-bg:#fef2f2;--orange-bg:#fff7ed;
+  --gov:     #001845;
+  --nav:     #002D72;
+  --pri:     #0057A8;
+  --pri-lt:  #006CC3;
+  --pri-bg:  #EBF3FC;
+  --pri-bd:  #B8D4F0;
+  --sur:     #FFFFFF;
+  --bg:      #F2F5FA;
+  --bdr:     #D1D9E6;
+  --txt:     #1A202C;
+  --sub:     #4A5568;
+  --hint:    #718096;
+  --grn:     #1B6B3A; --gbg:#E6F4EC; --gbd:#A3D9B8;
+  --red:     #C01C28; --rbg:#FEE2E2;
+  --org:     #C05621; --obg:#FEF3E2;
+  --pur:     #5B2D8E; --pbg:#F0EAF8;
+  --gld:     #96760A; --ybg:#FEF3CD;
+  --font:'Pretendard',-apple-system,'Apple SD Gothic Neo',sans-serif;
+  --r:10px;
+  --sh:0 1px 3px rgba(0,0,0,.07),0 1px 2px rgba(0,0,0,.05);
 }
-.danger-banner{display:none;padding:8px 16px;font-size:13px;font-weight:700;
-  text-align:center;flex-shrink:0;animation:pulseBg 1.5s ease-in-out infinite}
-.danger-banner.critical{display:block;background:var(--red);color:#fff}
-.danger-banner.high{display:block;background:var(--orange);color:#fff}
-.incident-card{background:var(--surface);border-radius:14px;padding:14px;
-  margin:4px 0;align-self:stretch;box-shadow:0 2px 8px rgba(29,78,216,.08);
-  border:1px solid var(--sep)}
-.incident-card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
-.badge-critical{background:#fef2f2;color:var(--red)}
-.badge-high{background:#fff7ed;color:var(--orange)}
-.dispatch-card{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:14px;
-  padding:14px;margin:4px 0;align-self:stretch}
-.btn-gopang{flex:1;padding:10px;background:var(--blue);color:#fff;
-  border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer}
-.btn-112{flex:1;padding:8px;background:var(--red);color:#fff;border:none;
-  border-radius:10px;font-size:14px;font-weight:800;cursor:pointer;letter-spacing:.5px}
-.btn-118{flex:1;padding:8px;background:var(--orange);color:#fff;border:none;
-  border-radius:10px;font-size:14px;font-weight:700;cursor:pointer}
-.location-bar{display:flex;align-items:center;gap:6px;padding:4px 16px;
-  background:rgba(29,78,216,.06);flex-shrink:0;font-size:11px;color:var(--txt2)}
-#auth-modal{display:none;position:fixed;inset:0;z-index:9000;
-  background:rgba(0,0,0,.4);align-items:flex-end;justify-content:center}
-#auth-modal.open{display:flex}
-.danger-banner{display:none;padding:8px 16px;font-size:13px;font-weight:700;
-  text-align:center;flex-shrink:0;letter-spacing:.3px}
-.danger-banner.critical{display:block;background:var(--red);color:#fff}
-.danger-banner.high{display:block;background:var(--orange);color:#fff}
-.location-bar{display:flex;align-items:center;gap:6px;padding:4px 16px 0;
-  font-size:11px;color:#6b7280;flex-shrink:0}
-.location-bar svg{width:11px;height:11px;stroke:currentColor;stroke-width:2;fill:none}
-.incident-card{background:var(--surface);border-radius:14px;padding:14px;
-  margin:4px 0;align-self:flex-start;max-width:90%;border:1px solid var(--border);
-  box-shadow:0 1px 4px rgba(0,0,0,.06)}
-.dispatch-card{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:14px;
-  padding:14px;margin:4px 0;align-self:flex-start;max-width:90%}
-.incident-card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
-.badge-critical{background:#fef2f2;color:var(--red);padding:3px 8px;border-radius:6px;font-size:12px;font-weight:700}
-.badge-high{background:#fff7ed;color:var(--orange);padding:3px 8px;border-radius:6px;font-size:12px;font-weight:700}
-.badge-medium{background:#fefce8;color:#ca8a04;padding:3px 8px;border-radius:6px;font-size:12px;font-weight:700}
-.badge-low{background:#f0fdf4;color:#16a34a;padding:3px 8px;border-radius:6px;font-size:12px;font-weight:700}
-.btn-gopang{flex:1;padding:10px;background:var(--blue);color:#fff;
-  border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer}
-.suggest-bar{background:#f0fdf4;border-top:1px solid var(--border);
-  padding:8px 12px;display:none;flex-shrink:0}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{font-family:var(--font);font-size:15px;color:var(--txt);background:var(--bg);-webkit-font-smoothing:antialiased;display:flex;flex-direction:column}
+a{text-decoration:none;color:inherit}
+button{font-family:var(--font)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spinner{width:14px;height:14px;border:2px solid rgba(0,87,168,.2);border-top-color:var(--pri);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+
+/* ── 상단바 ── */
+#top-bar{
+  flex-shrink:0;display:flex;align-items:center;justify-content:space-between;
+  padding:12px 16px;padding-top:calc(12px + env(safe-area-inset-top));
+  background:var(--gov);color:#fff;box-shadow:var(--sh);z-index:20;
+}
+.tb-brand{display:flex;align-items:center;gap:8px;font-weight:800;font-size:15px}
+.tb-icon{width:26px;height:26px;border-radius:6px;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:14px}
+.tb-sub{font-size:11px;font-weight:400;opacity:.75;margin-left:2px}
+.tb-gear{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.12);border:none;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.tb-gear:active{background:rgba(255,255,255,.22)}
+
+/* ── 대화 스레드 ── */
+#chat-thread{
+  flex:1;overflow-y:auto;padding:18px 14px 10px;display:flex;flex-direction:column;gap:10px;
+  -webkit-overflow-scrolling:touch;
+}
+.bubble{max-width:88%;padding:12px 14px;border-radius:14px;font-size:14.5px;line-height:1.65;white-space:normal;word-break:break-word;animation:pop .18s ease}
+@keyframes pop{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.bubble-ai{align-self:flex-start;background:var(--sur);border:1px solid var(--bdr);border-top-left-radius:4px;color:var(--txt);box-shadow:var(--sh)}
+.bubble-user{align-self:flex-end;background:var(--pri);color:#fff;border-top-right-radius:4px}
+.bubble-typing{align-self:flex-start;display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--sur);border:1px solid var(--bdr);border-radius:14px;border-top-left-radius:4px;font-size:12.5px;color:var(--hint)}
+
+/* ── 분석 카드 / 판결 요약 카드 ── */
+.analysis-card{display:flex;flex-direction:column;gap:8px}
+.ac-type{display:inline-block;align-self:flex-start;color:#fff;font-size:12px;font-weight:700;padding:4px 10px;border-radius:6px}
+.ac-row b{display:block;font-size:11.5px;color:var(--hint);font-weight:700;margin-bottom:2px}
+.verdict-card{display:flex;flex-direction:column;gap:10px}
+.vc-badge{font-size:11.5px;font-weight:700;color:var(--pri);background:var(--pri-bg);border:1px solid var(--pri-bd);border-radius:6px;padding:4px 8px;align-self:flex-start}
+.vc-summary{font-size:14px;font-weight:600;line-height:1.7}
+.vc-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12.5px}
+.vc-grid > div{background:var(--bg);border-radius:8px;padding:8px 10px;display:flex;flex-direction:column;gap:2px}
+.vc-grid span{color:var(--hint);font-size:11px}
+.vc-grid b{color:var(--pri);font-size:15px}
+.vc-caution{font-size:11.5px;color:var(--hint);line-height:1.6;border-top:1px dashed var(--bdr);padding-top:8px}
+
+/* ── 진행률 ── */
+.progress-wrap{display:flex;flex-direction:column;gap:6px;min-width:220px}
+.progress-bar{height:6px;background:var(--bg);border-radius:3px;overflow:hidden}
+.progress-fill{height:100%;background:var(--pri);transition:width .3s}
+.progress-label{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--hint)}
+
+/* ── 입력바 ── */
+#input-bar{
+  flex-shrink:0;display:flex;align-items:flex-end;gap:8px;padding:10px 12px;
+  padding-bottom:calc(10px + env(safe-area-inset-bottom));
+  background:var(--sur);border-top:1px solid var(--bdr);
+}
+.mic-btn{
+  width:40px;height:40px;flex-shrink:0;border-radius:50%;border:1.5px solid var(--bdr);background:var(--bg);
+  color:var(--pri);display:flex;align-items:center;justify-content:center;cursor:pointer;
+}
+.mic-btn.recording{background:var(--rbg);border-color:#fca5a5;color:var(--red);animation:pulse 1s infinite}
+.mic-btn svg{width:18px;height:18px}
+#chat-input{
+  flex:1;resize:none;max-height:120px;min-height:40px;padding:10px 14px;border-radius:20px;
+  border:1.5px solid var(--bdr);font-family:var(--font);font-size:14.5px;line-height:1.5;background:var(--bg);color:var(--txt);
+}
+#chat-input:focus{outline:none;border-color:var(--pri);background:var(--sur)}
+.send-btn{
+  width:40px;height:40px;flex-shrink:0;border-radius:50%;border:none;background:var(--bdr);color:#fff;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .15s;
+}
+.send-btn.active{background:var(--pri)}
+.send-btn svg{width:17px;height:17px}
+#mic-msg{margin:0 12px 8px;padding:9px 12px;border-radius:8px;font-size:11.5px;line-height:1.6}
+
+/* ── 설정 시트 ── */
+.sheet-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.35);opacity:0;pointer-events:none;transition:opacity .2s;z-index:30}
+.sheet-backdrop.open{opacity:1;pointer-events:auto}
+.sheet{
+  position:fixed;left:0;right:0;bottom:0;background:var(--sur);border-radius:16px 16px 0 0;
+  padding:18px 18px calc(18px + env(safe-area-inset-bottom));transform:translateY(100%);transition:transform .25s ease;z-index:31;
+  box-shadow:0 -4px 20px rgba(0,0,0,.15);max-height:80vh;overflow-y:auto;
+}
+.sheet.open{transform:translateY(0)}
+.sheet-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.sheet-hd h3{font-size:15.5px;font-weight:800}
+.sheet-close{width:30px;height:30px;border-radius:50%;background:var(--bg);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--sub)}
+.sheet label{font-size:12px;font-weight:700;color:var(--hint);display:block;margin-bottom:6px}
+.sheet input[type=text],.sheet input[type=password]{
+  width:100%;padding:11px 12px;border-radius:8px;border:1.5px solid var(--bdr);font-size:13.5px;font-family:var(--font);margin-bottom:6px;
+}
+.sheet-hint{font-size:11px;color:var(--hint);line-height:1.6;margin-bottom:14px}
+.sheet-save{width:100%;padding:12px;border-radius:8px;border:none;background:var(--pri);color:#fff;font-weight:700;font-size:14px;cursor:pointer}
+.sheet-save:active{background:var(--pri-lt)}
 </style>
 </head>
 <body>
-<div class="app">
-  <!-- 위험도 배너 -->
-  <div class="danger-banner" id="danger-banner"></div>
 
-  <!-- 상단 바 -->
-  <div class="topbar">
-    <div class="topbar-left">
-      <div class="topbar-icon">
-        <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
-      </div>
-      <span class="topbar-name">K-Police</span>
-    </div>
-    <div class="topbar-right">
-      <span class="auth-badge" id="auth-badge">L0</span>
-      <button class="top-btn" onclick="call112()" style="color:#dc2626;border-color:#fca5a5;background:#fef2f2">
-        <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2A19.79 19.79 0 0 1 11.83 19a19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-        112
-      </button>
-      <button class="top-btn icon-only" onclick="openSettings()" title="설정">
-        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-      </button>
-    </div>
+<header id="top-bar">
+  <div class="tb-brand">
+    <div class="tb-icon">🚓</div>
+    <div>K-Police</div>
   </div>
+  <button class="tb-gear" onclick="openSettings()" title="이용 안내">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18">
+      <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.6 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.6a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09A1.65 1.65 0 0015 4.6a1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>
+    </svg>
+  </button>
+</header>
 
-  <!-- 위치 바 -->
-  <div class="location-bar" id="location-bar" style="display:none">
-    <svg viewBox="0 0 24 24"><path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z"/><circle cx="12" cy="10" r="3"/></svg>
-    <span id="location-text">위치 확인 중…</span>
+<main id="chat-thread"></main>
+
+<footer id="input-bar">
+  <button class="mic-btn" id="mic-btn" onclick="toggleMic()" title="음성 입력">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0014 0"/><line x1="12" y1="22" x2="12" y2="18"/><line x1="8" y1="22" x2="16" y2="22"/></svg>
+  </button>
+  <textarea id="chat-input" rows="1" placeholder="메시지를 입력하세요…"></textarea>
+  <button class="send-btn" id="send-btn" onclick="sendMessage()" title="전송">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
+  </button>
+</footer>
+
+<div class="sheet-backdrop" id="sheet-backdrop" onclick="closeSettings()"></div>
+<div class="sheet" id="settings-sheet">
+  <div class="sheet-hd">
+    <h3>이용 안내</h3>
+    <button class="sheet-close" onclick="closeSettings()">✕</button>
   </div>
-
-  <!-- 채팅 화면 -->
-  <div class="chat-screen">
-    <div class="chat-body" id="mob-chat-body">
-      <!-- 인트로 -->
-      <div class="intro-section" id="intro-section">
-        <div class="intro-icon">
-          <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
-        </div>
-        <div>
-          <div class="intro-title">K-Police AI 경찰관</div>
-          <div class="intro-sub" style="margin-top:6px">범죄 신고 · 야간 귀가 · 보이스피싱 · 사이버범죄<br>24시간 보디가드입니다.</div>
-        </div>
-        <div class="chip-row">
-          <button class="chip" onclick="qs('지금 위험한 상황입니다!')">
-            <svg viewBox="0 0 24 24"><polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-            긴급 신고
-          </button>
-          <button class="chip" onclick="qs('범죄를 신고하겠습니다.')">
-            <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-            범죄 신고
-          </button>
-          <button class="chip" onclick="qs('오늘 밤 혼자 귀가합니다. 안전한지 확인해 주세요.')">
-            <svg viewBox="0 0 24 24"><path d="M17.5 21H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9z"/></svg>
-            야간 귀가
-          </button>
-          <button class="chip" onclick="qs('보이스피싱 전화를 받았습니다.')">
-            <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2A19.79 19.79 0 0 1 4.15 12 19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-            보이스피싱
-          </button>
-          <button class="chip" onclick="qs('사이버 범죄 피해를 입었습니다.')">
-            <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-            사이버범죄
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- 입력 영역 -->
-    <div class="chat-input-area">
-      <div class="aux-btns" id="aux-btns">
-        <button class="aux-btn mic-btn" id="mob-mic-btn" onclick="toggleMic()" title="음성 입력">
-          <svg viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="11" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/></svg>
-        </button>
-        <button class="aux-btn" onclick="document.getElementById('file-input').click()" title="파일 첨부">
-          <svg viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
-        </button>
-        <button class="aux-btn" onclick="openCamera()" title="카메라">
-          <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-        </button>
-      </div>
-      <div class="input-wrap">
-        <textarea class="chat-textarea" id="mob-input" rows="1"
-          placeholder="상황을 말씀해 주세요…"
-          oninput="onInputChange(this)"
-          onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMessage(document.getElementById('mob-input').value.trim())}"></textarea>
-      </div>
-      <button class="chat-send-btn" id="mob-send-btn"
-        onclick="sendMessage(document.getElementById('mob-input').value.trim())" disabled title="전송">
-        <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-      </button>
-      <input type="file" id="file-input" style="display:none" onchange="handleFile(this)">
-    </div>
+  <div class="sheet-hint" style="font-size:12.5px;line-height:1.9;margin-bottom:0">
+    K-Police 모바일은 <b>혼디 커뮤니티가 함께 사용하는 공유 계정</b>으로 동작합니다.
+    별도로 API Key를 등록하실 필요가 없습니다.<br><br>
+    안정적인 이용을 위해 1인당 1일 이용 한도가 있으며, 한도에 도달하면
+    다음 날 다시 이용하실 수 있습니다.
   </div>
 </div>
-
-<!-- 설정 패널 -->
-<div class="settings-panel" id="settings-panel">
-  <div class="settings-overlay" onclick="closeSettings()"></div>
-  <div class="settings-drawer">
-    <div class="settings-head">
-      <span class="settings-head-title">설정</span>
-      <button class="settings-close" onclick="closeSettings()">
-        <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </button>
-    </div>
-    <div class="settings-body">
-      <div class="settings-section">
-        <div class="settings-section-title">계정</div>
-        <div class="settings-item">
-          <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-          <div>
-            <div class="settings-item-label" id="settings-user-name">인증 대기 중</div>
-            <div class="settings-item-sub" id="settings-user-level">—</div>
-          </div>
-        </div>
-      </div>
-      <div class="settings-sep"></div>
-      <div class="settings-section">
-        <div class="settings-section-title">긴급 연락</div>
-        <div class="settings-item" onclick="call112();closeSettings()">
-          <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2A19.79 19.79 0 0 1 4.15 12 19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-          <div><div class="settings-item-label">112 경찰 신고</div><div class="settings-item-sub">즉시 112에 전화 연결</div></div>
-        </div>
-        <div class="settings-item" onclick="call118();closeSettings()">
-          <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/></svg>
-          <div><div class="settings-item-label">118 사이버범죄 신고</div><div class="settings-item-sub">사이버범죄 신고센터</div></div>
-        </div>
-      </div>
-      <div class="settings-sep"></div>
-      <div class="settings-section">
-        <div class="settings-section-title">사건 관리</div>
-        <div class="settings-item" onclick="qs('현재 사건 현황 알려줘');closeSettings()">
-          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-          <div><div class="settings-item-label">사건 현황</div><div class="settings-item-sub">진행 중인 사건 조회</div></div>
-        </div>
-        <div class="settings-item" onclick="finishAndReturn();closeSettings()">
-          <svg viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-          <div><div class="settings-item-label">상담 종료 및 PDV 기록</div><div class="settings-item-sub">기록 저장 후 고팡으로 복귀</div></div>
-        </div>
-      </div>
-      <div class="settings-sep"></div>
-      <div class="settings-section">
-        <div class="settings-section-title">대화</div>
-        <div class="settings-item" onclick="showHistory()">
-          <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-          <div><div class="settings-item-label">대화 기록</div><div class="settings-item-sub">현재 세션의 대화 내역</div></div>
-        </div>
-        <div class="settings-item" onclick="clearChat();closeSettings()">
-          <svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.36"/></svg>
-          <div><div class="settings-item-label">대화 초기화</div><div class="settings-item-sub">현재 채팅 기록 삭제</div></div>
-        </div>
-      </div>
-      <div class="settings-sep"></div>
-      <div class="settings-section">
-        <div class="settings-section-title">기타</div>
-        <div class="settings-item" onclick="window.open('desktop.html','_blank')">
-          <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-          <div><div class="settings-item-label">PC 화면 보기</div><div class="settings-item-sub">데스크탑 전체 기능 화면 열기</div></div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- 대화 기록 모달 -->
-<div class="history-modal" id="history-modal" onclick="if(event.target===this)closeHistory()">
-  <div class="history-sheet">
-    <div class="history-sheet-head">
-      <span class="history-sheet-title">대화 기록</span>
-      <button class="history-sheet-close" onclick="closeHistory()">
-        <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </button>
-    </div>
-    <div class="history-body" id="history-body"></div>
-  </div>
-</div>
-
-<div class="toast" id="mob-toast"></div>
 
 <script>
-// ── 상태 변수 ─────────────────────────────────────────────────
-let _user = null;
-let _currentMode = 'normal';
-let _currentRisk = 'LOW';
-let _activeCaseNum = null;
-let _sessionStart = new Date();
-let _sessionMsgCnt = 0;
-let _userLocation = null;
-let _systemPrompt = null;
+// ══════════════════════════════════════════════════════════════
+// GWP 파라미터 파싱 (gopang → 새 탭 호출 시 전달)
+// ══════════════════════════════════════════════════════════════
+const _qs        = new URLSearchParams(location.search);
+const GWP_MODE    = _qs.get('gwp') === '1';
+const GWP_TOKEN   = _qs.get('token')  || '';
+const GWP_ORIGIN  = _qs.get('origin') || '';
+let   GWP_CTX     = '';
+if (_qs.get('ctx')) {
+  try {
+    GWP_CTX = (_qs.get('ctx_enc') === 'b64')
+      ? decodeURIComponent(escape(atob(_qs.get('ctx'))))
+      : decodeURIComponent(_qs.get('ctx'));
+  } catch(e) { GWP_CTX = ''; }
+}
+let _gwpSeedUsed = false;
 
-// ── 설정 ──────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════
+// 서버 강제 상속 릴레이(/gov/relay) — K-Public 공통 규칙은 서버가
+// 자동으로 붙인다. 클라이언트는 K-Public 고유 규칙(agencyPrompt)과
+// 대화 내용만 보낸다 — SP-COMMON-05 H2/H6 강제 구조.
+// ══════════════════════════════════════════════════════════════
+const PROXY          = 'https://gopang-proxy.tensor-city.workers.dev';
+const GOV_RELAY_URL   = PROXY + '/gov/relay';
+const AGENCY_ID       = 'police';
+const GOV_TIER        = 'gov-flash'; // 민원 안내는 무거운 추론이 필요 없음
 
+function escHtml(str) { return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-// ── SP 동적 로드 ───────────────────────────────────────────────
-const PROXY = 'https://gopang-proxy.tensor-city.workers.dev';
-async function loadSystemPrompt() {
-  if (_systemPrompt) return _systemPrompt;
-  try { _systemPrompt = await (await fetch('/prompts/system_prompt.txt')).text(); }
-  catch { _systemPrompt = `당신은 K-Police AI 경찰관입니다. 24시간 보디가드로서 시민을 보호합니다.
-CRITICAL이면 즉시 112 전화를 안내하세요. 범죄 신고 시 6하원칙으로 정보를 수집하세요.`; }
-  return _systemPrompt;
+// ── K-Public 고유 규칙 (K-Public 공통 규칙은 서버가 앞에 자동으로 붙임) ──
+// SP-COMMON-04(M1~M12) 원칙 준수: AI 주도·1턴 1질문·사용자 질문 우선 응답·
+// 종료 기준선·감정 공감·음성입력 처리·상태 마커 길이 상한.
+const AGENCY_PROMPT = `당신은 경찰청을 대신하는 K-Police 안내 AI입니다.
+
+가장 중요한 규칙(다른 모든 규칙보다 우선):
+0. 사용자의 발화 어디에서든 지금 벌어지고 있거나 방금 벌어진 범죄·위험
+   상황(폭행, 강도, 스토킹 등 신변 위협, 사고 목격 등)이 조금이라도
+   감지되면, 그 즉시 인터뷰나 안내를 전부 멈추고 오직 다음만 굵게 강조해
+   응답한다: "지금 바로 112에 전화하십시오." 애매하면 응급으로 간주한다.
+
+응급이 아닌 경우에만 아래 규칙을 따른다(분실물, 각종 민원 접수 절차 문의,
+이미 종결된 사안의 행정 처리 등):
+1. 한 턴에 정확히 하나의 질문만 한다.
+2. 사용자가 이미 말한 내용을 다시 묻지 않는다.
+3. 사용자가 진짜 질문을 던지면 먼저 답한 뒤 원래 흐름으로 돌아온다.
+4. 특정인을 지목해 범죄를 단정하는 판단은 절대 내리지 않는다 — 사실관계
+   판단은 당신의 역할이 아니며, 정식 신고 절차로만 안내한다.
+5. 파악할 항목: 민원 유형(분실물/신고 절차 문의/각종 증명 발급/기타),
+   목적, 관할 지역(관할 경찰서·지구대), 시점.
+6. 보통 2~4회 질문이면 충분하다.
+
+사용자에게 보여줄 답변 본문을 먼저 쓰고, 맨 마지막 줄에 반드시 아래 형식의
+상태 마커를 한 줄로 덧붙인다(비응급 사안에서만). 각 필드는 100자 이내로
+짧게 요약해 누적하라:
+
+<<<STATE>>>{"type":"","applicant":"","purpose":"","region":"","urgency":"","extra":"","ready":false}<<<END>>>
+- ready: 안내를 시작해도 좋다고 판단되면 true.`;
+
+function _parseInterviewState(raw) {
+  const m = raw.match(/<<<STATE>>>([\s\S]*?)<<<END>>>/);
+  let state = null;
+  if (m) { try { state = JSON.parse(m[1]); } catch(e) { state = null; } }
+  let visible = raw.replace(/<<<STATE>>>[\s\S]*?<<<END>>>/, '').trim();
+  // 방어: 토큰 한도로 <<<END>>> 없이 마커가 잘린 경우, 마커 시작점부터 전부 잘라낸다.
+  const cutIdx = visible.indexOf('<<<STATE>>>');
+  if (cutIdx !== -1) visible = visible.slice(0, cutIdx).trim();
+  return { visible, state };
 }
 
-// ── AI 호출 ───────────────────────────────────────────────────
-async function callAI(userMsg) {
-  const sysPrompt = await loadSystemPrompt();
+// ══════════════════════════════════════════════════════════════
+// 채팅 UI 헬퍼
+// ══════════════════════════════════════════════════════════════
+function appendBubble(role, html) {
+  const thread = document.getElementById('chat-thread');
+  const div = document.createElement('div');
+  div.className = 'bubble ' + (role === 'ai' ? 'bubble-ai' : 'bubble-user');
+  div.innerHTML = html;
+  thread.appendChild(div);
+  thread.scrollTop = thread.scrollHeight;
+  return div;
+}
+function appendTyping() {
+  const thread = document.getElementById('chat-thread');
+  const div = document.createElement('div');
+  div.className = 'bubble-typing';
+  div.innerHTML = '<div class="spinner"></div><span>K-Police 안내 AI가 확인 중…</span>';
+  thread.appendChild(div);
+  thread.scrollTop = thread.scrollHeight;
+  return div;
+}
 
-  // 현재 모드·위치·사건번호 컨텍스트 주입
-  const ctx = [
-    `[모드: ${_currentMode}]`,
-    _userLocation ? `[사용자 위치: ${_userLocation.lat.toFixed(4)}, ${_userLocation.lng.toFixed(4)}]` : '',
-    _activeCaseNum ? `[진행 중인 사건번호: ${_activeCaseNum}]` : '',
-    _reportStep > 0 ? `[신고 진행 단계: ${_reportStep}/6]` : '',
-    `[현재 시각: ${new Date().toLocaleTimeString('ko-KR')}]`,
-  ].filter(Boolean).join(' ');
+// ══════════════════════════════════════════════════════════════
+// 공용 릴레이 호출 — BYOK 없음, K-Public 공통 규칙은 서버가 자동 삽입
+// ══════════════════════════════════════════════════════════════
+async function _pumpSSE(response, handleJson) {
+  if (!response.ok) {
+    let errMsg = `HTTP ${response.status}`;
+    try { const errBody = await response.json(); errMsg = errBody.message || errBody.error?.message || errBody.error || errMsg; } catch(e) {}
+    throw new Error(errMsg);
+  }
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder('utf-8');
+  let buf = '';
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    buf += decoder.decode(value, { stream: true });
+    const lines = buf.split('\n');
+    buf = lines.pop();
+    for (const line of lines) {
+      const t = line.trim();
+      if (!t.startsWith('data:')) continue;
+      const payload = t.slice(5).trim();
+      if (payload === '[DONE]') continue;
+      let json;
+      try { json = JSON.parse(payload); } catch(e) { continue; }
+      handleJson(json);
+    }
+  }
+}
 
-  _chatHistory.push({ role:'user', content:`${ctx}\n${userMsg}` });
+function _govGuid() { return policeUser?.ipv6 || GWP_TOKEN || 'anonymous'; }
 
-  const res = await fetch(`${KPOLICE_CONFIG.proxyUrl}/deepseek`, {
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
+async function _govCall(messages, opts = {}) {
+  const { maxTokens = 1000, stream = false, onChunk = null } = opts;
+  const resp = await fetch(GOV_RELAY_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      model:       KPOLICE_CONFIG.model,
-      max_tokens:  KPOLICE_CONFIG.maxTokens,
-      temperature: KPOLICE_CONFIG.temperature,
-      messages:[{role:'system',content:sysPrompt},..._chatHistory],
-    }),
+      guid: _govGuid(), agency: AGENCY_ID, agencyPrompt: AGENCY_PROMPT,
+      messages, max_tokens: maxTokens, stream, tier: GOV_TIER,
+    })
   });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  const data  = await res.json();
-  const reply = data.choices?.[0]?.message?.content || '(응답 없음)';
-  _chatHistory.push({role:'assistant',content:reply});
-  return reply;
-}
 
-// ── UI 헬퍼 ───────────────────────────────────────────────────
-function fmtTime(d) {
-  return d.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit',hour12:true});
-}
-function escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-function mdToHtml(s) {
-  return s
-    .replace(/\*\*(.*?)\*\*/g,'<b>$1</b>')
-    .replace(/\*(.*?)\*/g,'<i>$1</i>')
-    .replace(/`(.*?)`/g,'<code style="background:#f3f4f6;padding:1px 5px;border-radius:4px;font-size:13px">$1</code>')
-    .replace(/\n/g,'<br>');
-}
-function mdToHtml(s) {
-  return s
-    .replace(/\*\*(.*?)\*\*/g,'<b>$1</b>')
-    .replace(/\*(.*?)\*/g,'<i>$1</i>')
-    .replace(/`(.*?)`/g,'<code style="background:#f3f4f6;padding:1px 5px;border-radius:4px;font-size:13px">$1</code>')
-    .replace(/\n/g,'<br>');
-}
-function scrollBottom() {
-  const b = document.getElementById('chat-body');
-  setTimeout(() => b.scrollTop = b.scrollHeight, 50);
-}
-
-function autoResize(el) {
-  el.style.height = 'auto';
-  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
-}
-function updateSendBtn() {
-  const btn = document.getElementById('mob-send-btn');
-  if (btn) btn.disabled = !document.getElementById('mob-input').value.trim();
-}
-function onInputChange(el) {
-  autoResize(el); updateSendBtn();
-  const typing = el.value.length > 0;
-  document.getElementById('aux-btns')?.classList.toggle('hidden', typing);
-  const intro = document.getElementById('intro-section');
-  if (intro) intro.style.display = typing ? 'none' : 'flex';
-}
-function hideIntro() {
-  const el = document.getElementById('intro-section');
-  if (el) el.style.display = 'none';
-}
-function toast(msg) {
-  const t = document.getElementById('mob-toast');
-  t.textContent = msg; t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 3000);
-}
-
-// ── 버블 추가 (원본 함수 보존) ───────────────────────────────
-function appendAI(text, risk = 'LOW', extraClass = '') {
-  const wrap = document.createElement('div');
-  wrap.className = 'bubble-ai';
-  const cls = risk==='CRITICAL'?'critical-msg':risk==='HIGH'?'high-msg':extraClass?extraClass:'';
-  wrap.innerHTML = `
-    <div class="ai-avatar">👮</div>
-    <div class="bubble-ai-text ${cls}">${mdToHtml(text)}</div>`;
-  document.getElementById('chat-body').appendChild(wrap);
-  const t = document.createElement('div');
-  t.className = 'bubble-ai-time';
-  t.textContent = fmtTime(new Date());
-  document.getElementById('chat-body').appendChild(t);
-  scrollBottom();
-}
-function appendUser(text) {
-  const wrap = document.createElement('div');
-  wrap.className = 'bubble-user';
-  wrap.innerHTML = `
-    <div class="bubble-user-text">${escHtml(text)}</div>
-    <div class="bubble-user-time">${fmtTime(new Date())}</div>`;
-  document.getElementById('chat-body').appendChild(wrap);
-  scrollBottom();
-}
-function showTyping() {
-  const el = document.createElement('div');
-  el.className = 'typing'; el.id = 'typing-indicator';
-  el.innerHTML = `<div class="ai-avatar">👮</div>
-    <div class="typing-dots"><span></span><span></span><span></span></div>`;
-  document.getElementById('chat-body').appendChild(el);
-  scrollBottom();
-}
-function removeTyping() { document.getElementById('typing-indicator')?.remove(); }
-
-// ── 위험 배너 업데이트 ─────────────────────────────────────
-function updateDangerBanner(risk) {
-  const el = document.getElementById('danger-banner');
-  el.className = 'danger-banner';
-  if (risk==='CRITICAL'){ el.classList.add('critical'); el.textContent='🚨 CRITICAL — 즉시 112에 전화하세요'; }
-  else if (risk==='HIGH'){ el.classList.add('high'); el.textContent='⚠️ HIGH — 빠른 신고가 필요합니다'; }
-}
-function appendIncidentCard(caseNum, crimeInfo, incident) {
-  const el = document.createElement('div');
-  el.className = 'incident-card';
-  const badgeClass = crimeInfo.severity === 'CRITICAL' ? 'badge-critical' : 'badge-high';
-  el.innerHTML = `
-    <div class="incident-card-header">
-      <div class="incident-number">📁 ${caseNum}</div>
-      <span class="incident-badge ${badgeClass}">${crimeInfo.severity}</span>
-    </div>
-    <div class="incident-row"><span class="key">범죄 유형</span><span class="val">${crimeInfo.type}</span></div>
-    <div class="incident-row"><span class="key">적용 법조</span><span class="val">${crimeInfo.article || '수사 중'}</span></div>
-    <div class="incident-row"><span class="key">접수 시각</span><span class="val">${fmtTime(new Date())}</span></div>
-    <div class="incident-row"><span class="key">소송 유형</span><span class="val">형사 (국가 vs 피의자)</span></div>`;
-  document.getElementById('chat-body').appendChild(el);
-  scrollBottom();
-}
-function appendDispatchCard(dispatchResult) {
-  const el = document.createElement('div');
-  el.className = 'dispatch-card';
-  const orders = dispatchResult.dispatchOrders || [];
-  el.innerHTML = `
-    <div class="dispatch-title">🚔 출동 지시 완료 — ${orders.length}명 출동</div>
-    ${orders.map(o => `
-    <div class="dispatch-agent">
-      <div class="agent-avatar">${o.rank.charAt(0)}</div>
-      <div class="agent-info">
-        <div class="agent-name">${o.agentName} ${o.rank} — ${o.role}</div>
-        <div class="agent-role">${o.action.slice(0,40)}…</div>
-      </div>
-      <div class="agent-eta">~${o.eta}분</div>
-    </div>`).join('')}
-    ${dispatchResult.vehicleOrders?.some(v => v.autonomous) ? `
-    <div style="margin-top:8px;padding:6px 8px;background:#e0f2fe;border-radius:8px;font-size:12px;color:#0369a1">
-      🤖 자율주행 차량 ${dispatchResult.vehicleOrders.filter(v=>v.autonomous).length}대 자동 출동 명령 전송됨
-    </div>` : ''}`;
-  document.getElementById('chat-body').appendChild(el);
-  scrollBottom();
-}
-
-// ── 위험도 배너 ───────────────────────────────────────────────
-function updateDangerBanner(risk) {
-  const el = document.getElementById('danger-banner');
-  el.className = 'danger-banner';
-  if (risk==='CRITICAL'){ el.classList.add('critical'); el.textContent='🚨 CRITICAL — 즉시 112에 전화하세요'; }
-  else if (risk==='HIGH'){ el.classList.add('high'); el.textContent='⚠️ HIGH — 빠른 신고가 필요합니다'; }
-}
-function hideBanner() { document.getElementById('complete-banner').classList.remove('show'); }
-
-// ── PDV 표준 payload { user_guid, source, report: { pdv_6w } } ─
-async function sendPDVReport() {
-  const user_guid = _user?.ipv6 || _user?.guid || 'anonymous';
-  const mins = Math.round((new Date() - _sessionStart) / 60000);
-  try {
-    const res = await fetch(`${KPOLICE_CONFIG.proxyUrl}/pdv_log`, {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({
-        user_guid,
-        source: 'kpolice',
-        report: {
-          pdv_6w: {
-            who:   user_guid,
-            when:  new Date().toISOString(),
-            where: location.href,
-            what:  `K-Police 상담 완료 — ${mins}분 / ${_sessionMsgCnt}회`,
-            how:   `AI 경찰관 채팅 / 위험도: ${_currentRisk}${_activeCaseNum ? ' / 사건번호: '+_activeCaseNum : ''}`,
-            why:   '범죄 예방 및 피해 대응',
-          },
-        },
-      }),
+  if (stream) {
+    let fullText = '';
+    await _pumpSSE(resp, (json) => {
+      const delta = json.choices?.[0]?.delta?.content || '';
+      if (delta) { fullText += delta; onChunk && onChunk(delta, fullText); }
     });
-    return (await res.json())?.pdv_entry || 'recorded';
-  } catch { return null; }
-}
-
-// ── 메시지 전송 ───────────────────────────────────────────────
-async function sendMessage(text) {
-  if (!text.trim()) return;
-  document.getElementById('quick-chips').style.display = 'none';
-  appendUser(text);
-  _sessionMsgCnt++;
-  const inp = document.getElementById('msg-input');
-  inp.value = '';
-  autoResize(inp);
-  updateSendBtn();
-
-  // 위험 분석
-  const { level } = RiskEngine.analyzeContext({
-    text, hour: new Date().getHours(),
-  });
-  if (['HIGH','CRITICAL'].includes(level)) {
-    _currentRisk = level;
-    updateDangerBanner(level);
+    return fullText;
   }
 
-  // 신고 모드 전처리
-  if (_currentMode === 'report') {
-    await handleReportMode(text);
-  }
-
-  showTyping();
-  try {
-    const reply = await callAI(text);
-    removeTyping();
-    appendAI(reply, _currentRisk);
-    if (_sessionMsgCnt > 0 && _sessionMsgCnt % 8 === 0) suggestComplete();
-  } catch(e) {
-    removeTyping();
-    appendAI('⚠️ 오류가 발생했습니다. 다시 시도해 주세요.\n(' + e.message + ')', 'LOW');
-  }
-  document.getElementById('send-btn').disabled = false;
-}
-async function handleReportMode(text) {
-  // 범죄 유형 분류
-  const crimeInfo = RiskEngine.classifyCrime(text);
-
-  if (crimeInfo.isCriminal && !_activeCaseNum) {
-    // 사건번호 발급
-    _activeCaseNum   = RiskEngine.generateCaseNumber();
-    _activeCrimeInfo = crimeInfo;
-
-    // 사건 카드 표시
-    appendIncidentCard(_activeCaseNum, crimeInfo, {});
-    appendAI(`사건번호 **${_activeCaseNum}**이 발급됐습니다.\n\n이 사건은 **형사 사건**으로 분류됩니다.\n📌 적용 법조: ${crimeInfo.article}\n\n지금 안전한 곳에 계십니까?`, crimeInfo.severity);
-
-    // CRITICAL/HIGH → 즉시 출동
-    if (['CRITICAL','HIGH'].includes(crimeInfo.severity) && _userLocation) {
-      const incident = {
-        id:       _activeCaseNum,
-        type:     crimeInfo.type,
-        severity: crimeInfo.severity,
-        lat:      _userLocation.lat,
-        lng:      _userLocation.lng,
-        address:  `사용자 위치 (${_userLocation.lat.toFixed(4)}, ${_userLocation.lng.toFixed(4)})`,
-        requiredSpecialties: [],
-        requiredVehicles: 1,
-      };
-
-      try {
-        const dispatchResult = await DispatchEngine.dispatch(incident);
-        appendDispatchCard(dispatchResult);
-        appendAI(`출동 지시가 완료됐습니다. 가장 가까운 경찰관이 약 **${dispatchResult.dispatchOrders[0]?.eta || '?'}분** 후 도착합니다.\n\n계속해서 상황을 알려주세요.`, crimeInfo.severity);
-      } catch(e) {
-        console.warn('[Dispatch]', e.message);
-      }
-    }
-
-    _reportStep = 1;
-    return; // AI 일반 호출 스킵
-  }
-
-  // 형사 사건 소송 패키지 요청
-  if (_activeCaseNum && text.includes('소송') || text.includes('고소') || text.includes('기소')) {
-    appendAI('소송 패키지를 생성하고 있습니다…', 'LOW', 'system-msg');
-    try {
-      const { html } = await LawsuitEngine.create({
-        caseNumber: _activeCaseNum,
-        crimeInfo:  _activeCrimeInfo,
-        chatHistory: _chatHistory,
-        victimInfo: { name: _user?.name || '피해자', ipv6: _user?.ipv6 },
-      });
-      const el = document.createElement('div');
-      el.innerHTML = html;
-      document.getElementById('chat-body').appendChild(el);
-      scrollBottom();
-    } catch(e) {
-      appendAI('소송 패키지 생성 중 오류가 발생했습니다. 다시 시도해 주세요.', 'LOW');
-    }
-    return;
-  }
-}
-function suggestComplete() {
-  const mins = Math.round((new Date() - _sessionStart) / 60000);
-  document.getElementById('complete-summary').textContent =
-    `${mins}분 동안 ${_sessionMsgCnt}회 상담 — 고팡 PDV에 기록하시겠습니까?`;
-  document.getElementById('complete-banner').classList.add('show');
-  scrollBottom();
+  let data;
+  try { data = await resp.json(); } catch(e) { throw new Error(`HTTP ${resp.status}`); }
+  if (!resp.ok || data.error) throw new Error(data.message || data.error || `HTTP ${resp.status}`);
+  return data.choices?.[0]?.message?.content || '';
 }
 
-function qs(s) {
-  const inp = document.getElementById('mob-input');
-  inp.value = s; autoResize(inp); updateSendBtn();
-  document.getElementById('aux-btns')?.classList.remove('hidden');
-  hideIntro();
-  sendMessage(s);
-}
-function quickSend(s) { qs(s); }
-
-// ── 위치 ──────────────────────────────────────────────────────
-function initLocation() {
-  if (!navigator.geolocation) return;
-  const update = (pos) => {
-    _userLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-    document.getElementById('location-text').textContent =
-      `위치 확인됨 — ${_userLocation.lat.toFixed(4)}, ${_userLocation.lng.toFixed(4)}`;
-    analyzeLocationRisk(_userLocation);
-  };
-  navigator.geolocation.getCurrentPosition(update, () => {
-    // 폴백: 제주 기본 위치
-    _userLocation = { lat: 33.4996, lng: 126.5312 };
-    document.getElementById('location-text').textContent = '위치: 제주 (기본값)';
-  });
-  setInterval(() => navigator.geolocation.getCurrentPosition(update), KPOLICE_CONFIG.locationInterval);
-}
-function analyzeLocationRisk(loc) {
-  // 야간 시간 + 위치 조합 위험 분석
-  const hour = new Date().getHours();
-  if ((hour >= 23 || hour < 5) && _currentMode !== 'critical') {
-    // 야간 자동 체크인 메시지
-    if (_sessionMsgCnt === 0) {
-      setTimeout(() => {
-        appendAI(`🌙 야간 안전 확인 — 현재 ${new Date().toLocaleTimeString('ko-KR', {hour:'2-digit', minute:'2-digit'})}입니다. 안전하게 계신가요?`, 'MEDIUM');
-      }, 2000);
-    }
-  }
-}
-function setMode(mode) {
-  _currentMode = mode;
-  ['chat','report','schedule','case'].forEach(m => {
-    document.getElementById(`tab-${m}`)?.classList.toggle('active', m === mode);
-  });
-
-  // 칩 갱신
-  const chipEl = document.getElementById('quick-chips');
-  const chipSets = {
-    chat: [
-      ['🚨 긴급','지금 위험한 상황입니다!',true],
-      ['야간 귀가','오늘 밤 혼자 귀가합니다.',false],
-      ['일정 공유','내일 일정을 공유하겠습니다.',false],
-      ['안전 확인','현재 위치가 안전한지 확인해 주세요.',false],
-    ],
-    report: [
-      ['폭행 신고','폭행 피해를 신고합니다.',true],
-      ['사기 신고','사기 피해를 신고합니다.',false],
-      ['스토킹 신고','스토킹 피해를 신고합니다.',false],
-      ['성범죄 신고','성범죄 피해를 신고합니다.',false],
-    ],
-    schedule: [
-      ['오늘 일정','오늘 일정을 공유하겠습니다.',false],
-      ['야간 외출','오늘 밤 외출 계획이 있습니다.',false],
-      ['해외 여행','해외 여행 일정을 공유하겠습니다.',false],
-      ['낯선 차량','낯선 차량을 타야 합니다.',false],
-    ],
-    case: [
-      ['사건 조회','현재 진행 중인 사건을 알려주세요.',false],
-      ['소송 현황','소송 진행 현황을 알려주세요.',false],
-    ],
-  };
-
-  const chips = chipSets[mode] || chipSets.chat;
-  chipEl.innerHTML = chips.map(([label, msg, danger]) =>
-    `<div class="chip${danger?' danger-chip':''}" onclick="quickSend('${msg}')">${label}</div>`
-  ).join('');
-  chipEl.style.display = 'flex';
-}
-
-// ── PDV & 종료 ────────────────────────────────────────────────
-async function sendPDVReport() {
-  const user_guid = _user?.ipv6 || _user?.guid || 'anonymous';
-  const mins = Math.round((new Date() - _sessionStart) / 60000);
-  try {
-    const res = await fetch(`${KPOLICE_CONFIG.proxyUrl}/pdv_log`, {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({
-        user_guid,
-        source: 'kpolice',
-        report: {
-          pdv_6w: {
-            who:   user_guid,
-            when:  new Date().toISOString(),
-            where: location.href,
-            what:  `K-Police 상담 완료 — ${mins}분 / ${_sessionMsgCnt}회`,
-            how:   `AI 경찰관 채팅 / 위험도: ${_currentRisk}${_activeCaseNum ? ' / 사건번호: '+_activeCaseNum : ''}`,
-            why:   '범죄 예방 및 피해 대응',
-          },
-        },
-      }),
-    });
-    return (await res.json())?.pdv_entry || 'recorded';
-  } catch { return null; }
-}
-async function finishAndReturn() {
-  const btn = document.querySelector('.btn-gopang');
-  btn.textContent = '기록 중…'; btn.disabled = true;
-  const pdvId = await sendPDVReport();
-  appendAI('상담 기록이 고팡 PDV에 저장됐습니다. ✅\n안전하게 지내세요! 👮', 'LOW');
-  hideBanner();
-  if (_isGwp && window.parent !== window) {
-    window.parent.postMessage({ type:'GWP_SESSION_COMPLETE', svc:'police', pdv_id:pdvId, risk_level:_currentRisk }, _gwpOrigin);
-  }
-  setTimeout(() => {
-    if (_isGwp && window.parent !== window) window.parent.postMessage({type:'GWP_CLOSE',svc:'police'}, _gwpOrigin);
-    else window.location.href = KPOLICE_CONFIG.gopangUrl;
-  }, 1500);
-}
-
-// ── 긴급 전화 ─────────────────────────────────────────────────
-function call112() { if(confirm('112(경찰)에 전화하시겠습니까?')) location.href='tel:112'; }
-function call118() { if(confirm('118(사이버범죄)에 전화하시겠습니까?')) location.href='tel:118'; }
-
-// ── 환영 메시지 ───────────────────────────────────────────
-function showWelcome() {
-  const now  = new Date();
-  const hour = now.getHours();
-  const greet = hour < 12 ? '좋은 아침이에요' : hour < 18 ? '안녕하세요' : '좋은 저녁이에요';
-  const isNight = hour >= 22 || hour < 6;
-
-  const dateEl = document.createElement('div');
-  dateEl.className = 'date-divider';
-  dateEl.textContent = now.toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'short'});
-  document.getElementById('chat-body').appendChild(dateEl);
-
-  let intro = `${greet}! 저는 담당 AI 경찰관입니다. 👮\n\n`;
-  if (_gwpContext) {
-    intro += `"**${_gwpContext}**" 관련으로 오셨군요. 바로 확인하겠습니다.`;
-  } else if (isNight) {
-    intro += `🌙 **야간 안전 모드** 활성화됩니다.\n현재 위치를 파악 중입니다. 외출 중이시면 목적지와 동행 여부를 알려주세요.`;
-  } else {
-    intro += `오늘 일정이나 안전 우려 사항을 언제든 말씀해 주세요.\n\n🚨 **긴급 상황**이면 하단 **112 버튼**을 누르세요.\n📋 **범죄 신고**는 상단 [신고] 탭을 이용하세요.`;
-  }
-  appendAI(intro, 'LOW');
-}
-function call118() { if(confirm('118(사이버범죄)에 전화하시겠습니까?')) location.href='tel:118'; }
-
-// ── 환영 메시지 ───────────────────────────────────────────
-function showWelcome() {
-  const now  = new Date();
-  const hour = now.getHours();
-  const greet = hour < 12 ? '좋은 아침이에요' : hour < 18 ? '안녕하세요' : '좋은 저녁이에요';
-  const isNight = hour >= 22 || hour < 6;
-
-  const dateEl = document.createElement('div');
-  dateEl.className = 'date-divider';
-  dateEl.textContent = now.toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'short'});
-  document.getElementById('chat-body').appendChild(dateEl);
-
-  let intro = `${greet}! 저는 담당 AI 경찰관입니다. 👮\n\n`;
-  if (_gwpContext) {
-    intro += `"**${_gwpContext}**" 관련으로 오셨군요. 바로 확인하겠습니다.`;
-  } else if (isNight) {
-    intro += `🌙 **야간 안전 모드** 활성화됩니다.\n현재 위치를 파악 중입니다. 외출 중이시면 목적지와 동행 여부를 알려주세요.`;
-  } else {
-    intro += `오늘 일정이나 안전 우려 사항을 언제든 말씀해 주세요.\n\n🚨 **긴급 상황**이면 하단 **112 버튼**을 누르세요.\n📋 **범죄 신고**는 상단 [신고] 탭을 이용하세요.`;
-  }
-  appendAI(intro, 'LOW');
-}
-
-// ── 환영 메시지 ───────────────────────────────────────────────
-function showWelcome() {
-  const now  = new Date();
-  const hour = now.getHours();
-  const greet = hour < 12 ? '좋은 아침이에요' : hour < 18 ? '안녕하세요' : '좋은 저녁이에요';
-  const isNight = hour >= 22 || hour < 6;
-
-  const dateEl = document.createElement('div');
-  dateEl.className = 'date-divider';
-  dateEl.textContent = now.toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'short'});
-  document.getElementById('chat-body').appendChild(dateEl);
-
-  let intro = `${greet}! 저는 담당 AI 경찰관입니다. 👮\n\n`;
-  if (_gwpContext) {
-    intro += `"**${_gwpContext}**" 관련으로 오셨군요. 바로 확인하겠습니다.`;
-  } else if (isNight) {
-    intro += `🌙 **야간 안전 모드** 활성화됩니다.\n현재 위치를 파악 중입니다. 외출 중이시면 목적지와 동행 여부를 알려주세요.`;
-  } else {
-    intro += `오늘 일정이나 안전 우려 사항을 언제든 말씀해 주세요.\n\n🚨 **긴급 상황**이면 하단 **112 버튼**을 누르세요.\n📋 **범죄 신고**는 상단 [신고] 탭을 이용하세요.`;
-  }
-  appendAI(intro, 'LOW');
-}
-
-// ── 공통 UX ───────────────────────────────────────────────────
-function clearChat() {
-  if (typeof _sessionMsgCnt !== 'undefined') _sessionMsgCnt = 0;
-  if (typeof _activeCaseNum !== 'undefined') _activeCaseNum = null;
-  document.getElementById('mob-chat-body').innerHTML = '';
-  const intro = document.getElementById('intro-section');
-  if (intro) { intro.style.display = 'flex'; }
-  else { location.reload(); return; }
-  const inp = document.getElementById('mob-input');
-  if (inp) { inp.value = ''; autoResize(inp); updateSendBtn(); }
-  document.getElementById('aux-btns')?.classList.remove('hidden');
-  const banner = document.getElementById('danger-banner');
-  if (banner) { banner.className = 'danger-banner'; }
-}
-
-function openSettings() { document.getElementById('settings-panel').classList.add('open'); }
-function closeSettings() { document.getElementById('settings-panel').classList.remove('open'); }
-
-function showHistory() {
-  closeSettings();
-  const body = document.getElementById('history-body');
-  body.innerHTML = '';
-  const items = Array.from(document.querySelectorAll('#mob-chat-body .b-user-wrap, #mob-chat-body .b-ai-wrap'));
-  if (!items.length) {
-    body.innerHTML = '<div class="history-empty">대화 기록이 없습니다.</div>';
-  } else {
-    items.forEach(el => {
-      const isUser = el.classList.contains('b-user-wrap');
-      const text = el.querySelector('.b-user, .b-ai')?.innerText || '';
-      const div = document.createElement('div');
-      div.className = `history-item ${isUser ? 'user' : 'ai'}`;
-      div.innerHTML = `<div class="history-item-role">${isUser ? '나' : 'AI'}</div>${text.replace(/\n/g,'<br>')}`;
-      body.appendChild(div);
-    });
-    setTimeout(() => { body.scrollTop = body.scrollHeight; }, 50);
-  }
-  document.getElementById('history-modal').classList.add('open');
-}
-function closeHistory() { document.getElementById('history-modal').classList.remove('open'); }
-
-function handleFile(input) {
-  const file = input.files[0]; if (!file) return;
-  const name = file.name; input.value = '';
-  hideIntro(); appendUser(name);
-  showTyping();
-  setTimeout(async () => {
-    removeTyping();
-    const txt = await callAI(name).catch(() => '파일 처리 중 오류가 발생했습니다.');
-    appendAI(txt);
-  }, 200);
-}
-function openCamera() {
-  const input = document.createElement('input');
-  input.type = 'file'; input.accept = 'image/*'; input.capture = 'environment';
-  input.onchange = () => handleFile(input); input.click();
-}
-
-// ── ctx 파라미터 — ctx_enc=b64 분기 ──────────────────────────
-(function initCtx() {
-  const params  = new URLSearchParams(location.search);
-  const ctxRaw  = params.get('ctx') || '';
-  const ctxEnc  = params.get('ctx_enc');
-  if (ctxRaw) {
-    _gwpContext = ctxEnc === 'b64'
-      ? decodeURIComponent(escape(atob(ctxRaw)))
-      : decodeURIComponent(ctxRaw);
-  }
-  _gwpOrigin = params.get('origin') || 'https://hondi.net';
-})();
-
-
-// ── 마이크 v3.6 ───────────────────────────────────────────────
-let micActive = false, recognition = null, mediaRecorder = null, audioChunks = [];
-function _micSetUI(active) {
-  micActive = active;
-  const btn = document.getElementById('mob-mic-btn');
-  if (!btn) return;
-  if (active) { btn.style.background = '#fee2e2'; btn.querySelector('svg').style.stroke = '#ef4444'; }
-  else { btn.style.background = ''; btn.querySelector('svg').style.stroke = ''; }
-}
-function _micStartWebSpeech(SR) {
-  recognition = new SR();
-  recognition.lang           = 'ko-KR';
-  recognition.continuous     = false;
-  recognition.interimResults = false;
-  recognition.maxAlternatives = 1;
-
-  recognition.onresult = (e) => {
-    const t = e.results[0][0].transcript;
-    const inp = document.getElementById('msg-input');
-    if (inp && t) {
-      inp.value = t;
-      autoResize(inp);   // ★ 직접 호출
-      updateSendBtn();   // ★ 직접 호출
-    }
-    _micSetUI(false);
-    setTimeout(() => { if (inp?.value.trim()) sendMessage(inp.value.trim()); }, 100);
-  };
-
-  recognition.onerror = (e) => {
-    _micSetUI(false);
-    console.warn('[Mic] 오류:', e.error);
-    if (e.error !== 'aborted') appendAI('🎤 음성 인식 오류: ' + e.error, 'LOW');
-  };
-
-  recognition.onend = () => { _micSetUI(false); };
-
-  recognition.start();
-  _micSetUI(true);
-}
-async function _micStartMediaRecorder() {
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    audioChunks = [];
-    mediaRecorder = new MediaRecorder(stream);
-    mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-    mediaRecorder.onstop = async () => {
-      stream.getTracks().forEach(t => t.stop());
-      _micSetUI(false);
-    };
-    mediaRecorder.start();
-    _micSetUI(true);
-  } catch(e) {
-    _micSetUI(false);
-    appendAI('🎤 마이크 권한이 필요합니다.', 'LOW');
-  }
-}
-function toggleMic() {
-  if (micActive) {
-    if (recognition) { try { recognition.stop(); } catch(e) {} recognition = null; }
-    if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
-    _micSetUI(false);
-    return;
-  }
-  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!isIOS && SR) {
-    _micStartWebSpeech(SR);
-  } else if (isIOS && window.MediaRecorder) {
-    _micStartMediaRecorder();
-  } else {
-    appendAI('🎤 이 브라우저에서는 음성 인식을 지원하지 않습니다.', 'LOW');
-  }
-}
-
-function goBackToGopang() {
-  if (_sessionMsgCnt === 0) {
-    if (_isGwp && window.parent !== window) window.parent.postMessage({type:'GWP_CLOSE',svc:'police'}, _gwpOrigin);
-    else window.location.href = KPOLICE_CONFIG.gopangUrl;
-    return;
-  }
-  suggestComplete();
-}
-function closeAuthModal() { document.getElementById('auth-modal').classList.remove('open'); }
-function call112() { if(confirm('112(경찰)에 전화하시겠습니까?')) location.href='tel:112'; }
-function call118() { if(confirm('118(사이버범죄)에 전화하시겠습니까?')) location.href='tel:118'; }
-
-// ── 환영 메시지 ───────────────────────────────────────────
-function showWelcome() {
-  const now  = new Date();
-  const hour = now.getHours();
-  const greet = hour < 12 ? '좋은 아침이에요' : hour < 18 ? '안녕하세요' : '좋은 저녁이에요';
-  const isNight = hour >= 22 || hour < 6;
-
-  const dateEl = document.createElement('div');
-  dateEl.className = 'date-divider';
-  dateEl.textContent = now.toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'short'});
-  document.getElementById('chat-body').appendChild(dateEl);
-
-  let intro = `${greet}! 저는 담당 AI 경찰관입니다. 👮\n\n`;
-  if (_gwpContext) {
-    intro += `"**${_gwpContext}**" 관련으로 오셨군요. 바로 확인하겠습니다.`;
-  } else if (isNight) {
-    intro += `🌙 **야간 안전 모드** 활성화됩니다.\n현재 위치를 파악 중입니다. 외출 중이시면 목적지와 동행 여부를 알려주세요.`;
-  } else {
-    intro += `오늘 일정이나 안전 우려 사항을 언제든 말씀해 주세요.\n\n🚨 **긴급 상황**이면 하단 **112 버튼**을 누르세요.\n📋 **범죄 신고**는 상단 [신고] 탭을 이용하세요.`;
-  }
-  appendAI(intro, 'LOW');
-}
-</script>
-
-<script>
-window._onGopangAuth = async function(user) {
-  if (!user) return;
-
-  document.getElementById('auth-loading').style.display = 'none';
-  document.getElementById('app').style.display = 'flex';
-  document.getElementById('auth-badge').textContent = user.level || 'L0';
-
-  initLocation();
-  showWelcome();
-
-  if (_gwpContext) setTimeout(() => sendMessage(_gwpContext), 600);
-
-  const clean = new URL(location.href);
-  ['gwp','gwp_token','ctx','origin'].forEach(k => clean.searchParams.delete(k));
-  history.replaceState({}, '', clean.toString());
+// ══════════════════════════════════════════════════════════════
+// 대화 상태
+// ══════════════════════════════════════════════════════════════
+let conversationState = {
+  phase: 'boot',            // boot → interviewing → generating → done
+  messages: [],              // system 메시지 없음 — 서버가 K-Public 공통+agencyPrompt로 자동 조립
+  caseState: { type:'', applicant:'', purpose:'', region:'', urgency:'', extra:'' },
+  turnCount: 0
 };
+let policeUser     = null;
+let policeNickname = '';
+
+// ── 최초 이용 여부 판별 (기기 단위) ──
+const _KPUB_GREETED_KEY = 'police_mobile_greeted_v1';
+function _hasGreetedBefore() { try { return localStorage.getItem(_KPUB_GREETED_KEY) === '1'; } catch(e) { return false; } }
+function _markGreeted() { try { localStorage.setItem(_KPUB_GREETED_KEY, '1'); } catch(e) {} }
+
+const _KPUB_REPEAT_GREETINGS = [
+  name => `${name}님, 오늘은 어떤 민원으로 오셨나요? (응급 상황은 112)`,
+  name => `${name}님, 다시 뵙습니다. 무엇을 도와드릴까요?`,
+];
+function _pickRepeatGreeting(name) {
+  const fn = _KPUB_REPEAT_GREETINGS[Math.floor(Math.random() * _KPUB_REPEAT_GREETINGS.length)];
+  return fn(name);
+}
+
+// ══════════════════════════════════════════════════════════════
+// 고팡 공통 인증 콜백
+// ══════════════════════════════════════════════════════════════
+window._onGopangAuth = async function(user) {
+  policeUser = user;
+  console.info('[K-Police Auth] 고팡 인증 완료 — Lv.' + user.level + ' / ' + user.via);
+  policeNickname = await _resolveNickname(user.ipv6 || GWP_TOKEN);
+  startGreeting();
+};
+
+async function _resolveNickname(ipv6) {
+  if (!ipv6) return '회원';
+  try {
+    const L1_URL = 'https://l1-hanlim.hondi.net/api/collections/profiles/records';
+    const filter = encodeURIComponent(`guid='${ipv6}'`);
+    const r = await fetch(`${L1_URL}?filter=${filter}&perPage=1`);
+    const d = await r.json();
+    return d.items?.[0]?.nickname || '회원';
+  } catch(e) { console.warn('[K-Police] 닉네임 조회 실패:', e.message); return '회원'; }
+}
+
+function startGreeting() {
+  if (conversationState.phase !== 'boot') return;
+  const name = policeNickname || '회원';
+
+  if (!_hasGreetedBefore()) {
+    appendBubble('ai', `
+      안녕하세요. K-Police를 처음 이용하시는군요. 저는 경찰청 비응급 민원 안내
+      AI입니다.<br>
+      <b>${escHtml(name)}</b>님, <b style="color:var(--red)">지금 범죄·위협 등 긴급
+      상황이라면 대화 대신 즉시 112로 전화해 주세요.</b> 저는 분실물, 신고 절차
+      문의 같은 비응급 민원만 안내할 수 있고, 사실관계나 유무죄를 판단하지
+      않습니다.<br><br>
+      어떤 민원으로 오셨는지 말씀해 주세요.
+    `);
+    _markGreeted();
+  } else {
+    appendBubble('ai', escHtml(_pickRepeatGreeting(name)));
+  }
+
+  conversationState.phase = 'interviewing';
+}
+
+setTimeout(() => { if (conversationState.phase === 'boot') { policeNickname = '회원'; startGreeting(); } }, 4000);
+
+// ══════════════════════════════════════════════════════════════
+// 메시지 전송 · 대화 분기
+// ══════════════════════════════════════════════════════════════
+async function sendMessage() {
+  const ta = document.getElementById('chat-input');
+  const text = ta.value.trim();
+  if (!text) return;
+  appendBubble('user', escHtml(text).replace(/\n/g,'<br>'));
+  ta.value = ''; _micAutoResize(ta); _updateSendBtn();
+
+  switch (conversationState.phase) {
+    case 'interviewing': await _handleInterviewTurn(text); break;
+    case 'generating':
+      appendBubble('ai', '안내문을 준비하는 중입니다. 잠시만 기다려 주세요.');
+      break;
+    default: await _handleFreeQuestion(text); break;
+  }
+}
+
+async function _handleInterviewTurn(text) {
+  let userContent = text;
+  if (GWP_CTX && !_gwpSeedUsed) {
+    userContent = `[사용자가 사전에 "나만의 AI 비서"와 나눈 맥락 — 참고만 하고 그대로 인용하지 말 것]\n${GWP_CTX}\n\n[사용자의 이번 발화]\n${text}`;
+    _gwpSeedUsed = true;
+  }
+  conversationState.messages.push({ role:'user', content: userContent });
+  conversationState.turnCount++;
+
+  const typing = appendTyping();
+  try {
+    const raw = await _govCall(conversationState.messages, { maxTokens: 800 });
+    typing.remove();
+    const { visible, state } = _parseInterviewState(raw);
+    conversationState.messages.push({ role:'assistant', content: raw });
+
+    if (state) {
+      conversationState.caseState = {
+        type:      state.type      || conversationState.caseState.type,
+        applicant: state.applicant || conversationState.caseState.applicant,
+        purpose:   state.purpose   || conversationState.caseState.purpose,
+        region:    state.region    || conversationState.caseState.region,
+        urgency:   state.urgency   || conversationState.caseState.urgency,
+        extra:     state.extra     || conversationState.caseState.extra,
+      };
+    }
+
+    appendBubble('ai', escHtml(visible || '죄송합니다, 방금 답변이 조금 끊겼네요. 다시 한번 말씀해 주시겠어요?').replace(/\n/g,'<br>'));
+
+    if (state?.ready && conversationState.turnCount >= 2) {
+      conversationState.phase = 'generating';
+      setTimeout(runGuidanceGen, 400);
+    }
+  } catch(e) {
+    typing.remove();
+    appendBubble('ai', `⚠ ${escHtml(e.message)}`);
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// 안내문 생성 — K-Law의 STEP 0~C처럼 무거운 다단계 생성이 필요 없어
+// 단일 호출로 처리한다(gov-flash 티어, 추론 불필요).
+// ══════════════════════════════════════════════════════════════
+async function runGuidanceGen() {
+  const cs = conversationState.caseState || {};
+  const typing = appendTyping();
+
+  const genPrompt = `아래 파악된 비응급 경찰 민원 정보를 바탕으로 안내문을 작성하세요.
+민원유형: ${cs.type||''}
+목적: ${cs.purpose||''}
+관할지역: ${cs.region||''}
+추가사실: ${cs.extra||''}
+
+담당 기관(관할 경찰서·지구대), 절차, 필요 서류, 유의사항을 간결한 평문으로
+작성하세요. 특정인의 유무죄를 판단하는 표현은 쓰지 않습니다. 마지막 줄에
+"위급 상황이라면 지금 바로 112로 신고하십시오. 비응급 민원의 정확한 접수는
+관할 경찰서 공식 채널을 이용하십시오."를 반드시 포함하세요. 상태 마커는
+붙이지 마세요.`;
+
+  try {
+    const result = await _govCall([...conversationState.messages, { role:'user', content: genPrompt }], { maxTokens: 1200 });
+    typing.remove();
+    appendBubble('ai', `
+      <div class="verdict-card">
+        <div class="vc-badge">경찰 비응급 민원 안내</div>
+        <div class="vc-summary" style="font-weight:400;font-size:13.5px;line-height:1.8">${escHtml(result).replace(/\n/g,'<br>')}</div>
+      </div>
+    `);
+    conversationState.phase = 'done';
+    conversationState.messages.push({ role:'assistant', content: result });
+  } catch(e) {
+    typing.remove();
+    appendBubble('ai', `⚠ 안내문 생성 중 오류: ${escHtml(e.message)}`);
+    conversationState.phase = 'interviewing';
+  }
+}
+
+async function _handleFreeQuestion(text) {
+  conversationState.messages.push({ role:'user', content: text });
+  const typing = appendTyping();
+  try {
+    const resp = await _govCall(conversationState.messages, { maxTokens: 800 });
+    typing.remove();
+    appendBubble('ai', escHtml(resp).replace(/\n/g,'<br>'));
+    conversationState.messages.push({ role:'assistant', content: resp });
+  } catch(e) {
+    typing.remove();
+    appendBubble('ai', `⚠ 오류: ${escHtml(e.message)}`);
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// 설정 시트
+// ══════════════════════════════════════════════════════════════
+function openSettings() {
+  document.getElementById('sheet-backdrop').classList.add('open');
+  document.getElementById('settings-sheet').classList.add('open');
+}
+function closeSettings() {
+  document.getElementById('sheet-backdrop').classList.remove('open');
+  document.getElementById('settings-sheet').classList.remove('open');
+}
+
+// ══════════════════════════════════════════════════════════════
+// 음성 입력 (K-Law 모바일과 동일한 v3.6 패턴)
+// ══════════════════════════════════════════════════════════════
+let isRecording = false;
+let recognition = null;
+
+function _detectMicEnv() {
+  const inIframe   = window.self !== window.top;
+  const isSecure   = window.isSecureContext;
+  const isArtifact = location.hostname.includes('claude') || location.hostname.includes('artifact');
+  return { inIframe, isSecure, isArtifact };
+}
+async function _checkMicPermission() {
+  if (!navigator.permissions) return 'unknown';
+  try { const r = await navigator.permissions.query({ name:'microphone' }); return r.state; } catch(e) { return 'unknown'; }
+}
+function _micShowMsg(html, type = 'warn') {
+  document.getElementById('mic-msg')?.remove();
+  const colors = { warn:{bg:'#FFF3CD',bd:'#FDE68A',tx:'#78350F'}, error:{bg:'#FEE2E2',bd:'#FCA5A5',tx:'#7F1D1D'}, info:{bg:'#EFF6FF',bd:'#BFDBFE',tx:'#1E3A5F'} }[type] || {};
+  const div = document.createElement('div');
+  div.id = 'mic-msg';
+  div.style.cssText = `background:${colors.bg};border:1px solid ${colors.bd};color:${colors.tx};`;
+  div.innerHTML = html;
+  document.getElementById('input-bar').insertAdjacentElement('beforebegin', div);
+  setTimeout(() => div.remove(), 12000);
+}
+function _micSetIdle(btn) {
+  isRecording = false; btn.classList.remove('recording');
+  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0014 0"/><line x1="12" y1="22" x2="12" y2="18"/><line x1="8" y1="22" x2="16" y2="22"/></svg>';
+  recognition = null;
+}
+function _micSetActive(btn) {
+  isRecording = true; btn.classList.add('recording');
+  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>';
+}
+function _micAutoResize(ta) { ta.style.height = 'auto'; ta.style.height = Math.min(ta.scrollHeight, 120) + 'px'; }
+function _updateSendBtn() {
+  const ta = document.getElementById('chat-input');
+  document.getElementById('send-btn').classList.toggle('active', ta.value.trim().length > 0);
+}
+
+async function toggleMic() {
+  const btn = document.getElementById('mic-btn');
+  const ta  = document.getElementById('chat-input');
+  if (isRecording) { recognition && recognition.stop(); return; }
+
+  const env = _detectMicEnv();
+  if (env.isArtifact || env.inIframe) { _micShowMsg('<strong>🎙️ 미리보기 환경에서는 마이크를 사용할 수 없습니다.</strong><br>실제 배포 URL에서 사용하세요.', 'info'); return; }
+  if (!env.isSecure) { _micShowMsg('<strong>🎙️ HTTPS가 아닌 환경에서는 마이크를 사용할 수 없습니다.</strong>', 'error'); return; }
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { _micShowMsg('⚠️ 이 브라우저는 음성-텍스트 변환을 지원하지 않습니다.<br>Chrome 또는 Edge를 사용해 주세요.', 'warn'); return; }
+  const perm = await _checkMicPermission();
+  if (perm === 'denied') { _micShowMsg('<strong>🎙️ 마이크 권한이 차단되어 있습니다.</strong><br>주소창 왼쪽 🔒 → 사이트 설정 → 마이크 → 허용 후 새로고침하세요.', 'error'); return; }
+
+  recognition = new SR();
+  recognition.lang = 'ko-KR'; recognition.continuous = true; recognition.interimResults = true; recognition.maxAlternatives = 1;
+  let finalText = ta.value; let interim = '';
+
+  recognition.onstart = () => { _micSetActive(btn); document.getElementById('mic-msg')?.remove(); };
+  recognition.onresult = (e) => {
+    interim = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      if (e.results[i].isFinal) finalText += e.results[i][0].transcript;
+      else interim += e.results[i][0].transcript;
+    }
+    ta.value = finalText + interim; _micAutoResize(ta);
+  };
+  recognition.onend = () => { _micSetIdle(btn); ta.value = finalText; _micAutoResize(ta); _updateSendBtn(); };
+  recognition.onerror = (e) => {
+    _micSetIdle(btn);
+    const msgs = {
+      'not-allowed': ['마이크 권한이 거부되었습니다.<br>주소창 🔒 → 사이트 설정 → 마이크 → 허용 후 새로고침하세요.', 'error'],
+      'service-not-allowed': ['음성 인식 서비스가 허용되지 않았습니다.', 'error'],
+      'network': ['네트워크 오류로 음성 인식에 실패했습니다.', 'warn'],
+      'no-speech': ['음성이 감지되지 않았습니다. 마이크에 가까이 대고 다시 시도하세요.', 'warn'],
+      'audio-capture': ['마이크를 찾을 수 없습니다.', 'error'],
+    };
+    if (e.error !== 'aborted' && msgs[e.error]) _micShowMsg('🎙️ ' + msgs[e.error][0], msgs[e.error][1]);
+  };
+  recognition.start();
+}
+
+// ══════════════════════════════════════════════════════════════
+// 초기화
+// ══════════════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  const ta = document.getElementById('chat-input');
+  ta.addEventListener('input', () => { _micAutoResize(ta); _updateSendBtn(); });
+  ta.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } });
+});
 </script>
 </body>
 </html>
