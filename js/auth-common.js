@@ -85,7 +85,7 @@ async function _verifyToken(token) {
   try {
     const proxyUrl = typeof KPOLICE_CONFIG !== 'undefined' ? KPOLICE_CONFIG.proxyUrl
                    : typeof CFG           !== 'undefined' ? CFG.proxyUrl
-                   : 'https://gopang-proxy.tensor-city.workers.dev';
+                   : 'https://hondi-proxy.tensor-city.workers.dev';
     const res = await fetch(proxyUrl + '/auth/verify', {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ token, svc: _AUTH_SVC_ID }),

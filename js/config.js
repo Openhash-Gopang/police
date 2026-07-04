@@ -3,7 +3,7 @@ const KPOLICE_CONFIG = {
   name:        'K-Police',
   version:     '2.0',
   gopangUrl:   'https://hondi.net',
-  proxyUrl:    'https://gopang-proxy.tensor-city.workers.dev',
+  proxyUrl:    'https://hondi-proxy.tensor-city.workers.dev',
   model:       'deepseek-chat',
   maxTokens:   1200,
   temperature: 0.4,
