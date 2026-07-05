@@ -865,6 +865,7 @@ async function sendChat() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: 'deepseek-v4-pro',
+        service_id: 'kpolice', // 2026-07-05: UNIVERSAL 레이어 강제 주입
         system: GDC_SYSTEM_PROMPT,
         messages: chatHistory.slice(-12),
         max_tokens: 600, temperature: 0.7,
