@@ -38,6 +38,7 @@ ${chatHistory.map(m => `[${m.role}] ${m.content}`).join('\n')}
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model:       KPOLICE_CONFIG.model,
+        service_id:  'kpolice', // 2026-07-07: worker.js가 UNIVERSAL-INTEGRITY/UNIVERSAL-common 강제 주입
         max_tokens:  1500,
         temperature: 0.2,
         messages: [
