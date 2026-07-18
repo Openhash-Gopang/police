@@ -86,9 +86,31 @@ const RiskEngine = (() => {
     { keywords:['몰카','불법촬영','도촬'],          type:'불법촬영',  article:'성폭력처벌법 제14조', severity:'HIGH' },
   ];
 
+  // ⚠️ 범위 안내: 아래 부정어 처리는 classifyCrime()(고소장 등 법률
+  // 문서 생성용)에만 적용한다. analyzeText()/analyzeContext()(실시간
+  // 위험도 판정, 출동 우선순위에 쓰임)는 절대 건드리지 않는다 — 911
+  // 시스템 프롬프트의 "확신이 없어도 응급으로 간주" 원칙과 마찬가지로,
+  // 안전 관련 판정은 놓치는 것(false negative)이 오탐(false positive)
+  // 보다 훨씬 위험하다. 반면 classifyCrime()은 신고자 본인의 발화를
+  // 근거로 실제 법률 문서에 특정 죄명·조문을 인용하는 함수라, 안심시키는
+  // 말("안 죽이겠다고 약속했어요")을 협박 범죄로 잘못 기재하면 그
+  // 자체로 부정확한 법률 문서가 만들어지는 별개의 문제가 생긴다.
+  //
+  // 부정어 판단은 최대한 보수적으로(명확한 부정 조사가 키워드 바로
+  // 앞에 붙어있을 때만) 한다 — 애매하면 그대로 분류한다(분류 누락보다
+  // 과분류가 안전한 방향).
+  const NEGATION_MARKERS = ['안 ', '안', '않', '못 ', '아니'];
+  function _isNegated(text, keyword) {
+    const idx = text.indexOf(keyword);
+    if (idx < 0) return false;
+    const before = text.slice(Math.max(0, idx - 6), idx);
+    return NEGATION_MARKERS.some(m => before.includes(m));
+  }
+
   function classifyCrime(text) {
     for (const entry of CRIME_MAP) {
-      if (entry.keywords.some(k => text.includes(k))) {
+      const matched = entry.keywords.find(k => text.includes(k));
+      if (matched && !_isNegated(text, matched)) {
         return {
           type:     entry.type,
           article:  entry.article,

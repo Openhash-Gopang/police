@@ -24,12 +24,36 @@ describe('risk-engine.js — analyzeText', () => {
     const r = RiskEngine.analyzeText('오늘 날씨가 좋네요');
     assert.equal(r.level, 'LOW');
   });
-  test('BUG CHECK: classifyCrime()이 부정문도 오탐 — "안 죽이겠다고 약속했어요"(안심시키는 말)가 협박 범죄로 분류됨', () => {
-    // classifyCrime의 '협박' 키워드 목록에 '죽이겠'이 있어 부정("안 ~하겠다")이든
-    // 긍정이든 구분 없이 단순 substring 매칭만으로 범죄로 분류한다.
+  test('취약점 수정 확인: classifyCrime()이 부정문("안 죽이겠다고 약속했어요")을 더 이상 협박 범죄로 분류하지 않는다', () => {
     const r = RiskEngine.classifyCrime('그 사람이 절대 안 죽이겠다고 약속했어요');
-    assert.equal(r.isCriminal, true,
-      '부정문(안심시키는 발언)인데도 "죽이겠" substring만으로 협박 범죄(HIGH)로 오분류됨 — 부정어 처리가 없음');
+    assert.equal(r.isCriminal, false);
+    assert.equal(r.type, '미분류');
+  });
+
+  test('회귀 방지: 부정어가 없는 진짜 협박은 여전히 정확히 분류된다(수정이 민감도를 떨어뜨리지 않았는지 확인)', () => {
+    const r = RiskEngine.classifyCrime('너 죽이겠다고 계속 문자가 와요');
+    assert.equal(r.isCriminal, true);
+    assert.equal(r.type, '협박');
+    assert.equal(r.article, '형법 제283조');
+  });
+
+  test('의도적 설계: analyzeText()/analyzeContext()(실시간 위험도, 출동 우선순위용)는 부정어 처리를 하지 않는다 — 안전 판정은 민감도를 유지해야 함', () => {
+    // classifyCrime()과 달리 analyzeText는 같은 부정문 입력이어도 여전히
+    // 키워드가 있으면 그대로 반응한다(다만 KEYWORDS.HIGH/CRITICAL엔 '죽이겠'
+    // 자체가 없어 이 문장에선 LOW로 나옴 — 이건 이미 위에서 별도로 확인한
+    // "어미 변화 매칭 누락"과는 다른 이야기이고, 여기서 확인하려는 건
+    // classifyCrime만 수정되고 analyzeText 쪽 로직·민감도는 전혀
+    // 손대지 않았다는 것 그 자체).
+    const before = RiskEngine.analyzeText('그 사람이 절대 안 죽이겠다고 약속했어요');
+    const after  = RiskEngine.analyzeText('그 사람이 절대 안 죽이겠다고 약속했어요');
+    assert.deepEqual(before, after, 'analyzeText는 결정적이며 이번 수정과 무관하게 그대로여야 함');
+  });
+
+  test('과잉 억제 방지: 키워드와 무관하게 멀리 떨어진 곳의 "안"은 분류를 억제하지 않는다', () => {
+    // "불안해요"의 "안"이 뒤쪽 "협박"까지 오염시키면 안 됨 — 부정어 판단은
+    // 키워드 바로 앞 6글자 이내로 좁게 본다.
+    const r = RiskEngine.classifyCrime('불안해요 그 사람이 죽이겠다고 협박했어요');
+    assert.equal(r.isCriminal, true);
     assert.equal(r.type, '협박');
   });
 });
